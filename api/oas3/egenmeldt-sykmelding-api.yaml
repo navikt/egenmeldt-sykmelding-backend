@@ -5,7 +5,7 @@ info:
   description: API for egenmeldt sykmeldinger.
   version: 1.0.0
 servers:
-  - url: 'https://syfosmregister.nais.preprod.local'
+  - url: 'https://egenmeldt-sykmelding-backend.nais.preprod.local'
 
 paths:
   /sykmelding/egenmeldt:

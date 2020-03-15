@@ -36,7 +36,7 @@ spec:
   vault:
     enabled: true
     paths:
-      - kvPath: /azuread/data/dev/creds/egenmeldt-sykmelding-backend
+      - kvPath: /azuread/data/prod/creds/egenmeldt-sykmelding-backend
         mountPath: /secrets/azuread/egenmeldt-sykmelding-backend
       - kvPath: serviceuser/data/prod/srvegenmeldt
         mountPath: /secrets/serviceuser
