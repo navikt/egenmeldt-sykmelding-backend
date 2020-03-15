@@ -1,0 +1,71 @@
+openapi: 3.0.0
+
+info:
+  title: Egenmeldt sykmelding API
+  description: API for egenmeldt sykmeldinger.
+  version: 1.0.0
+servers:
+  - url: 'https://syfosmregister.nais.preprod.local'
+
+paths:
+  /sykmelding/egenmeldt:
+    post:
+      operationId: createEgenmeldtSykmelding
+      description: Opprett ny egenmeldt sykmelding
+      security:
+        - bearerAuth: []
+      requestBody:
+        $ref: '#/components/requestBodies/CreateEgenmeldtSykmelding'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/CreateEgenmeldtSykmeldingBadRequest'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+components:
+  requestBodies:
+    CreateEgenmeldtSykmelding:
+      description: Egenmeldt Sykmelding data object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EgenmeldtSykmelding'
+
+  responses:
+    CreateEgenmeldtSykmeldingBadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              errors:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+  schemas:
+    EgenmeldtSykmelding:
+      type: object
+      properties:
+        periode:
+          $ref: '#/components/schemas/EgenmeldtPeriode'
+    EgenmeldtPeriode:
+      type: object
+      description: Perioden for egenmeldt sykmelding. Fom = fra og med, tom = til og med
+      properties:
+        fom:
+          $ref: '#/components/schemas/Date'
+        tom:
+          $ref: '#/components/schemas/Date'
+    Date:
+      type: string
+      format: date
+security:
+  - bearerAuth: []

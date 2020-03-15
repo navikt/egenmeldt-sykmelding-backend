@@ -1,5 +1,6 @@
 package no.nav.syfo.application
 
+import com.auth0.jwk.JwkProvider
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.auth.authenticate
 import io.ktor.features.CallId
 import io.ktor.features.ContentNegotiation
 import io.ktor.features.StatusPages
@@ -21,14 +23,22 @@ import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import java.util.UUID
 import no.nav.syfo.Environment
+import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
+import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
+import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
+import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
+import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 
 @KtorExperimentalAPI
 fun createApplicationEngine(
     env: Environment,
-    applicationState: ApplicationState
+    applicationState: ApplicationState,
+    vaultSecrets: VaultSecrets,
+    jwkProvider: JwkProvider,
+    issuer: String
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -39,20 +49,31 @@ fun createApplicationEngine(
                 configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             }
         }
+
+        setupAuth(vaultSecrets, jwkProvider, issuer)
+
         install(CallId) {
             generate { UUID.randomUUID().toString() }
             verify { callId: String -> callId.isNotEmpty() }
             header(HttpHeaders.XCorrelationId)
         }
         install(StatusPages) {
+            setUpSykmeldingExceptionHandler()
             exception<Throwable> { cause ->
                 call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
                 log.error("Caught exception", cause)
             }
         }
+        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
 
         routing {
             registerNaisApi(applicationState)
+            if (env.cluster == "dev-fss") {
+                setupSwaggerDocApi()
+                authenticate {
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                }
+            }
         }
         intercept(ApplicationCallPipeline.Monitoring, monitorHttpRequests())
     }
