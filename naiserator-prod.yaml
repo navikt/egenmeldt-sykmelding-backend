@@ -36,7 +36,7 @@ spec:
   vault:
     enabled: true
     paths:
-      - kvPath: serviceuser/data/prod/srvegenmeldt-sykmelding-backend
+      - kvPath: serviceuser/data/prod/srvegenmeldt
         mountPath: /secrets/serviceuser
       - kvPath: /kv/prod/fss/egenmeldt-sykmelding-backend/default
         mountPath: /var/run/secrets/nais.io/vault
