@@ -41,12 +41,12 @@ fun TestApplicationEngine.setUpTestApplication() {
 
 fun TestApplicationEngine.setUpAuth(): Environment {
     val env = Environment(
-            kafkaBootstrapServers = "", cluster = "CLUSTERNAME")
+            kafkaBootstrapServers = "", cluster = "CLUSTERNAME", mqHostname = "", mqPort = 1111, mqChannelName = "", mqGatewayName = "", syfoserviceQueueName = "")
 
     val path = "src/test/resources/jwkset.json"
     val uri = Paths.get(path).toUri().toURL()
     val jwkProvider = JwkProviderBuilder(uri).build()
-    val vaultSecrets = VaultSecrets("", "", "1", "", "loginservice")
+    val vaultSecrets = VaultSecrets("", "", "1", "", "loginservice", "", "")
 
     application.setupAuth(vaultSecrets, jwkProvider, "issuer")
     return env
