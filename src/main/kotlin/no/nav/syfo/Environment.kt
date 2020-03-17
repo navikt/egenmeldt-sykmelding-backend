@@ -16,7 +16,10 @@ data class Environment(
     override val mqGatewayName: String = getEnvVar("MQ_GATEWAY_NAME"),
     override val mqChannelName: String = getEnvVar("MQ_CHANNEL_NAME"),
     val syfoserviceQueueName: String = getEnvVar("MQ_SYFOSERVICE_QUEUE_NAME"),
-    override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL")
+    override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
+    val egenmeldtSykmeldingBackendDBURL: String = getEnvVar("EGENMELDT_SYKMELDING_BACKEND_DB_URL"),
+    val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
+    val databaseName: String = getEnvVar("DATABASE_NAME", "egenmeldt-sykmelding-backend")
 ) : MqConfig, KafkaConfig
 
 data class VaultSecrets(

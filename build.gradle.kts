@@ -26,6 +26,11 @@ val jedisVersion = "3.1.0"
 val spekVersion = "2.0.9"
 val testcontainersVersion = "1.12.5"
 val swaggerUiVersion = "3.10.0"
+val postgresVersion = "42.2.5"
+val flywayVersion = "5.2.4"
+val hikariVersion = "3.3.0"
+val vaultJavaDriveVersion = "3.1.0"
+
 plugins {
     kotlin("jvm") version "1.3.61"
     id("com.github.johnrengelman.shadow") version "5.2.0"
@@ -85,8 +90,14 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashEncoderVersion")
 
+    implementation("org.postgresql:postgresql:$postgresVersion")
+    implementation("com.zaxxer:HikariCP:$hikariVersion")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    implementation("com.bettercloud:vault-java-driver:$vaultJavaDriveVersion")
+
     implementation("redis.clients:jedis:$jedisVersion")
     swaggerUI( "org.webjars:swagger-ui:$swaggerUiVersion")
+
     testImplementation("org.amshove.kluent:kluent:$kluentVersion")
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("no.nav:kafka-embedded-env:$kafkaEmbeddedVersion")
