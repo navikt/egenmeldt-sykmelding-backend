@@ -58,3 +58,7 @@ spec:
       value: P_EGENMELDT
     - name: MQ_SYFOSERVICE_QUEUE_NAME
       value: QA.P_EIA_SYFO_OUTBOUND
+    - name: EGENMELDT_SYKMELDING_BACKEND_DB_URL
+      value: jdbc:postgresql://A01DBVL011.adeo.no:5432/egenmeldt-sykmelding-backend
+    - name: MOUNT_PATH_VAULT
+      value: /postgresql/prod-fss

@@ -41,7 +41,17 @@ fun TestApplicationEngine.setUpTestApplication() {
 
 fun TestApplicationEngine.setUpAuth(): Environment {
     val env = Environment(
-            kafkaBootstrapServers = "", cluster = "CLUSTERNAME", mqHostname = "", mqPort = 1111, mqChannelName = "", mqGatewayName = "", syfoserviceQueueName = "")
+            kafkaBootstrapServers = "",
+            cluster = "CLUSTERNAME",
+            mqHostname = "",
+            mqPort = 1111,
+            mqChannelName = "",
+            mqGatewayName = "",
+            syfoserviceQueueName = "",
+            egenmeldtSykmeldingBackendDBURL = "",
+            mountPathVault = "",
+            databaseName = ""
+    )
 
     val path = "src/test/resources/jwkset.json"
     val uri = Paths.get(path).toUri().toURL()
