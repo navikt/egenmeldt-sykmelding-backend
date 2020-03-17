@@ -26,6 +26,8 @@ import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.db.Database
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
@@ -64,7 +66,7 @@ fun createApplicationEngine(
                 log.error("Caught exception", cause)
             }
         }
-        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
+        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(Database(env, VaultCredentialService()))
 
         routing {
             registerNaisApi(applicationState)

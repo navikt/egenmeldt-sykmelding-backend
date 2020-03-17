@@ -1,12 +1,18 @@
 package no.nav.syfo.sykmelding.api
 
+import com.auth0.jwt.interfaces.Payload
 import io.ktor.auth.authenticate
+import io.ktor.auth.authentication
+import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockk
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
@@ -15,6 +21,7 @@ import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
+import no.nav.syfo.sykmelding.util.TestDB
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth
@@ -28,8 +35,16 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
         with(TestApplicationEngine()) {
             start()
             setUpTestApplication()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(TestDB())
             val applicationState = ApplicationState(true, true)
+
+            val mockPayload = mockk<Payload>()
+
+            beforeEachTest {
+                clearAllMocks()
+                every { mockPayload.subject } returns "pasient_fnr"
+            }
+
             application.routing {
                 registerNaisApi(applicationState)
                 registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
@@ -45,6 +60,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
+                    call.authentication.principal = JWTPrincipal(mockPayload)
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
                 }
@@ -60,6 +76,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
+                    call.authentication.principal = JWTPrincipal(mockPayload)
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
                     getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
@@ -73,7 +90,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(TestDB())
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
