@@ -71,6 +71,7 @@ dependencies {
     implementation("no.nav.helse:syfosm-common-models:$smCommonModelVersion")
     implementation("no.nav.helse:syfosm-common-rest-sts:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-networking:$smCommonVersion")
+    implementation("no.nav.helse:syfosm-common-mq:$smCommonVersion")
 
     implementation("no.nav.helse.xml:sm2013:$sykmeldingVersion")
     implementation("no.nav.helse.xml:xmlfellesformat:$fellesformatVersion")
