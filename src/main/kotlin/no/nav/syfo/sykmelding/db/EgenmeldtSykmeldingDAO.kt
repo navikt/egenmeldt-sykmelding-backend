@@ -11,16 +11,23 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
                     INSERT INTO egenmeldt_sykmelding (
                         id, 
                         pasientfnr, 
-                        from_date, 
-                        to_date, 
-                        receivedsykmelding) 
+                        fom, 
+                        tom, 
+                        arbeidsforhold) 
                     VALUES (?, ?, ?, ?, ?);
                 """
+
+        var i = 1;
+
         connection.prepareStatement(insertQuery).use {
+            it.setObject(i++, egenmeldtSykmelding.id )
+            it.setString(i++, egenmeldtSykmelding.fodselsnummer )
+            it.setObject(i++, egenmeldtSykmelding.periode.fom )
+            it.setObject(i++, egenmeldtSykmelding.periode.tom )
+            it.setObject(i++, egenmeldtSykmelding.arbeidsforhold)
 
         }
-//        connection.registerStatus(sykmeldingStatusEvent)
-//        connection.commit()
+        connection.commit()
     }
 }
 
