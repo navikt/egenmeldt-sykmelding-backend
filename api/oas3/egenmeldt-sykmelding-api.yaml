@@ -25,6 +25,19 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
+  /arbeidsforhold:
+    get:
+      operationId: getArbeidsforhold
+      description: henter arbeidsforhold for innlogget bruker
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          $ref: '#/components/responses/ArbeidsforholdResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
 
 components:
   requestBodies:
@@ -36,6 +49,14 @@ components:
             $ref: '#/components/schemas/EgenmeldtSykmelding'
 
   responses:
+    ArbeidsforholdResponse:
+      description: liste med arbeidsforhold for innlogget bruker
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Arbeidsforhold'
     CreateEgenmeldtSykmeldingBadRequest:
       description: Bad request
       content:
@@ -51,11 +72,30 @@ components:
                     message:
                       type: string
   schemas:
+    Arbeidsforhold:
+      type: object
+      required:
+        - navn
+        - orgNummer
+        - stillingsprosent
+      properties:
+        navn:
+          type: string
+        orgNummer:
+          type: string
+        stillingsprosent:
+          type: number
+          example:
+            80.5
     EgenmeldtSykmelding:
       type: object
       properties:
         periode:
           $ref: '#/components/schemas/EgenmeldtPeriode'
+        arbeidsforhold:
+          type: array
+          items:
+            $ref: '#/components/schemas/Arbeidsforhold'
     EgenmeldtPeriode:
       type: object
       description: Perioden for egenmeldt sykmelding. Fom = fra og med, tom = til og med
