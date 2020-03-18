@@ -76,12 +76,15 @@ dependencies {
     implementation("no.nav.helse:syfosm-common-kafka:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-models:$smCommonModelVersion")
     implementation("no.nav.helse:syfosm-common-rest-sts:$smCommonVersion")
+    implementation("no.nav.helse:syfosm-common-ws:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-networking:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-mq:$smCommonVersion")
 
     implementation("no.nav.helse.xml:sm2013:$sykmeldingVersion")
     implementation("no.nav.helse.xml:xmlfellesformat:$fellesformatVersion")
     implementation("no.nav.helse.xml:kith-hodemelding:$kithHodemeldingVersion")
+
+    implementation("com.migesok:jaxb-java-time-adapters:$javaTimeAdapterVersion")
 
     implementation("com.fasterxml.jackson.module:jackson-module-jaxb-annotations:$jacksonVersion")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
