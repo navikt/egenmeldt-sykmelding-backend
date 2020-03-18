@@ -4,7 +4,6 @@ import java.time.LocalDate
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
-import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.util.TestDB
@@ -23,7 +22,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         fom = LocalDate.now(),
                         tom = LocalDate.now().plusDays(1)
                 ))
-                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(egenmeldtSykmeldingRequest.periode, "12345678912"))
+                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678912")
             }
         }
         it("Should throw exception when tom is before form") {
@@ -33,7 +32,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             fom = LocalDate.now(),
                             tom = LocalDate.now().minusDays(1)
                     ))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(egenmeldtSykmeldingRequest.periode, "12345678912"))
+                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678912")
                 }
             }
         }

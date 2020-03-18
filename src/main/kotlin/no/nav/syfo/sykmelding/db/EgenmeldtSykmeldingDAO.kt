@@ -1,9 +1,9 @@
 package no.nav.syfo.sykmelding.db
 
 import no.nav.syfo.db.DatabaseInterface
-import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
+import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 
-fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
+fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmeldingRequest) {
     connection.use { connection ->
 
         val insertQuery : String =
