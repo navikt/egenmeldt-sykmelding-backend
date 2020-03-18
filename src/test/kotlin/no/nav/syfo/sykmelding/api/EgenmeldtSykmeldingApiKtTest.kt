@@ -18,6 +18,7 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
+import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
@@ -55,8 +56,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
                             periode = Periode(
                                     fom = LocalDate.now(),
-                                    tom = LocalDate.now().plusDays(4)
-                            )
+                                    tom = LocalDate.now().plusDays(4)),
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
@@ -71,8 +72,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
                             periode = Periode(
                                     fom = LocalDate.now(),
-                                    tom = LocalDate.now().minusDays(4)
-                            )
+                                    tom = LocalDate.now().minusDays(4)),
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
@@ -101,8 +102,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val requestBody = EgenmeldtSykmeldingRequest(Periode(
                             LocalDate.now(),
-                            LocalDate.now()
-                    ))
+                            LocalDate.now()),
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+                    )
                     setBody(getObjectMapper().writeValueAsString(requestBody))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
@@ -117,8 +119,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val requestBody = EgenmeldtSykmeldingRequest(Periode(
                             LocalDate.now(),
-                            LocalDate.now()
-                    ))
+                            LocalDate.now()),
+                            listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+                    )
                     setBody(getObjectMapper().writeValueAsString(requestBody))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
