@@ -3,7 +3,6 @@ package no.nav.syfo.sykmelding.util
 import com.opentable.db.postgres.embedded.EmbeddedPostgres
 import java.sql.Connection
 import no.nav.syfo.db.DatabaseInterface
-
 import org.flywaydb.core.Flyway
 
 class TestDB : DatabaseInterface {
@@ -27,8 +26,5 @@ fun Connection.dropData() {
     use { connection ->
         connection.prepareStatement("DELETE FROM egenmeldt_sykmelding").executeUpdate()
         connection.commit()
-
     }
 }
-
-

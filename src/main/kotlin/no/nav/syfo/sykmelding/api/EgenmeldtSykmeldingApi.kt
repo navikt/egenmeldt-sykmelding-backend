@@ -9,10 +9,8 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
-import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
-import java.util.UUID
 
 fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtSykmeldingService) {
 

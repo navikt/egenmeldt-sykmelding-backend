@@ -13,9 +13,11 @@ import io.ktor.server.testing.setBody
 import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkClass
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
+import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
@@ -36,7 +38,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
         with(TestApplicationEngine()) {
             start()
             setUpTestApplication()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(TestDB())
+            val database = mockkClass(DatabaseInterface::class, relaxed = true)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(database)
             val applicationState = ApplicationState(true, true)
 
             val mockPayload = mockk<Payload>()
@@ -91,7 +94,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(TestDB())
+            val database = mockkClass(DatabaseInterface::class, relaxed = true)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(database)
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
