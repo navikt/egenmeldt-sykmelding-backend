@@ -6,11 +6,12 @@ import no.nav.syfo.db.Database
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import java.io.StringReader
 
 class EgenmeldtSykmeldingService(private val database: DatabaseInterface) {
-    suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
+    suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest: EgenmeldtSykmelding) {
         val fom = egenmeldtSykmeldingRequest.periode.fom
         val tom = egenmeldtSykmeldingRequest.periode.tom
         if (tom.isBefore(fom)) {

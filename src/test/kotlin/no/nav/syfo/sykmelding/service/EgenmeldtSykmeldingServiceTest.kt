@@ -5,6 +5,7 @@ import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
+import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.util.TestDB
@@ -26,6 +27,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
 
                 egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678912")
+
             }
         }
         it("Should throw exception when tom is before form") {
@@ -38,6 +40,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             ),
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678912")
+
                 }
             }
         }
