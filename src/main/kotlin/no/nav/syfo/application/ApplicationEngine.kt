@@ -78,7 +78,7 @@ fun createApplicationEngine(
                 }
             }
             authenticate {
-                route("/test") {
+                route("/api/test") {
                     get {
                         call.respondText("Det fungerer! :)")
                     }
