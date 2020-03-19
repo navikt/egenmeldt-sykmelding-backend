@@ -16,6 +16,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.response.respond
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.ApplicationEngine
 import io.ktor.server.engine.embeddedServer
@@ -72,6 +75,13 @@ fun createApplicationEngine(
                 setupSwaggerDocApi()
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                }
+            }
+            authenticate {
+                route("/api/test") {
+                    get {
+                        call.respondText("Det fungerer! :)")
+                    }
                 }
             }
         }
