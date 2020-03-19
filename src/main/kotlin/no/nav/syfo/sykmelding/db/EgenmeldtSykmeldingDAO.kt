@@ -35,7 +35,10 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
             it.setString(i++, egenmeldtSykmelding.arbeidsforhold.navn)
             it.setString(i++, egenmeldtSykmelding.arbeidsforhold.orgNummer)
             it.setDouble(i++, egenmeldtSykmelding.arbeidsforhold.stillingsprosent)
+
+            it.execute()
         }
+
         connection.commit()
     }
 }
