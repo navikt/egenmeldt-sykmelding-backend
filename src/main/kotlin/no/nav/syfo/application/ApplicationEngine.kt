@@ -77,13 +77,13 @@ fun createApplicationEngine(
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
                 }
             }
-            authenticate {
+            // authenticate {
                 route("/api/test") {
                     get {
                         call.respondText("Det fungerer! :)")
                     }
                 }
-            }
+            // }
         }
         intercept(ApplicationCallPipeline.Monitoring, monitorHttpRequests())
     }
