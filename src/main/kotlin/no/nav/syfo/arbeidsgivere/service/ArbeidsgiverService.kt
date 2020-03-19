@@ -47,19 +47,19 @@ class ArbeidsgiverService(private val arbeidsforholdClient: ArbeidsforholdClient
 
     private fun getName(navn: Navn): String {
         val builder = StringBuilder()
-        if (navn.navnelinje1.isNullOrBlank()) {
+        if (!navn.navnelinje1.isNullOrBlank()) {
             builder.appendln(navn.navnelinje1)
         }
-        if (navn.navnelinje2.isNullOrBlank()) {
+        if (!navn.navnelinje2.isNullOrBlank()) {
             builder.appendln(navn.navnelinje2)
         }
-        if (navn.navnelinje3.isNullOrBlank()) {
+        if (!navn.navnelinje3.isNullOrBlank()) {
             builder.appendln(navn.navnelinje3)
         }
-        if (navn.navnelinje4.isNullOrBlank()) {
+        if (!navn.navnelinje4.isNullOrBlank()) {
             builder.appendln(navn.navnelinje4)
         }
-        if (navn.navnelinje5.isNullOrBlank()) {
+        if (!navn.navnelinje5.isNullOrBlank()) {
             builder.appendln(navn.navnelinje5)
         }
         return builder.lineSequence().joinToString(separator = ",")
