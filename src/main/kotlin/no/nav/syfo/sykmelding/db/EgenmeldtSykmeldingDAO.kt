@@ -61,9 +61,6 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID) {
                     .toList { tilEgenmeldtSykmelding() }
         }
 
-        // TODO: Lag objekt og returner
-
-        TODO("Må implementeres")
     }
 
 }
@@ -71,7 +68,7 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID) {
 fun ResultSet.tilEgenmeldtSykmelding(): EgenmeldtSykmelding {
     return EgenmeldtSykmelding(
             id = getObject("id") as UUID,
-            fodselsnummer = getString("fodselsnummer"),
+            fodselsnummer = getString("pasientfnr"),
             arbeidsforhold = Arbeidsforhold(
                     getString("arbeidsforhold_navn"),
                     getString("arbeidsforhold_orgnr"),
