@@ -20,10 +20,6 @@ class EgenmeldtSykmeldingService(private val database: DatabaseInterface) {
 
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        // todo rest
-
-//        Ta imot forenklet sykmelding fra frontend
-//        Lagre referanse og input til database
 //        Lage sykmelding
 //        Mappe til XML fordi infotrygd og syofoservice (se i syfosm-mottak?)
 //        Legge på OK-kafka-topic
