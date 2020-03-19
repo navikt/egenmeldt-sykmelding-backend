@@ -45,7 +45,7 @@ class ArbeidsgiverService(private val arbeidsforholdClient: ArbeidsforholdClient
         return tomIsNullOrBeforeNow && fomIsNullOrAfterNow
     }
 
-    private fun getName(navn: Navn): String {
+    fun getName(navn: Navn): String {
         val builder = StringBuilder()
         if (!navn.navnelinje1.isNullOrBlank()) {
             builder.appendln(navn.navnelinje1)
@@ -62,6 +62,8 @@ class ArbeidsgiverService(private val arbeidsforholdClient: ArbeidsforholdClient
         if (!navn.navnelinje5.isNullOrBlank()) {
             builder.appendln(navn.navnelinje5)
         }
-        return builder.lineSequence().joinToString(separator = ",")
+        return builder.lineSequence().filter {
+                    it.isNotBlank()
+                }.joinToString(separator = ",")
     }
 }

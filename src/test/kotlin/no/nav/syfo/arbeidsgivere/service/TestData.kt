@@ -25,10 +25,10 @@ fun getOrganisasjonsinfo(): Organisasjonsinfo {
     return Organisasjonsinfo("123456789",
             Navn(
                     "Navn 1",
-                    "Navn2",
-                    "Navn3",
-                    "Navn4",
-                    "Navn5",
-                    "redigertNavn")
+                    null,
+                    null,
+                    null,
+                    null,
+                    null)
     )
 }

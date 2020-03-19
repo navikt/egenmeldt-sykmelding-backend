@@ -28,6 +28,7 @@ class ArbeidsgiverServiceTest : Spek({
 
                 val arbeidsgiverinformasjon = arbeidsgiverService.getArbeidsgivere("12345678901", "token", LocalDate.now())
                 arbeidsgiverinformasjon.size shouldEqual 1
+                arbeidsgiverinformasjon[0].navn shouldEqual "Navn 1"
             }
         }
 
