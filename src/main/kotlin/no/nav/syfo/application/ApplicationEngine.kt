@@ -26,6 +26,8 @@ import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.arbeidsgivere.api.registrerArbeidsgiverApi
+import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
@@ -38,7 +40,8 @@ fun createApplicationEngine(
     applicationState: ApplicationState,
     vaultSecrets: VaultSecrets,
     jwkProvider: JwkProvider,
-    issuer: String
+    issuer: String,
+    arbeidsgiverService: ArbeidsgiverService
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -72,6 +75,7 @@ fun createApplicationEngine(
                 setupSwaggerDocApi()
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerArbeidsgiverApi(arbeidsgiverService)
                 }
             }
         }
