@@ -10,7 +10,7 @@ import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 
 class EgenmeldtSykmeldingService(private val database: DatabaseInterface) {
-    suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
+    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
         if (tom.isBefore(fom)) {
@@ -24,7 +24,7 @@ class EgenmeldtSykmeldingService(private val database: DatabaseInterface) {
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
     }
 
-    suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
+    fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
         val list = sykmeldingRequest.arbeidsforhold.map {
             EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
         }
