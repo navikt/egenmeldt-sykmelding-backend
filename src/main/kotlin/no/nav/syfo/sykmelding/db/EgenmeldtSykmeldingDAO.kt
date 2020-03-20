@@ -44,6 +44,28 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
     }
 }
 
+fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmelding): Boolean {
+    connection.use { connection ->
+        val query = """
+            SELECT count(*)
+            FROM egenmeldt_sykmelding
+            WHERE pasientfnr = ?
+              AND arbeidsforhold->>'orgNummer' = ?
+        """
+
+        connection.prepareStatement(query).use {
+            var i = 1;
+            it.setString(i++, egenmeldtSykmelding.fodselsnummer)
+            it.setString(i++, egenmeldtSykmelding.arbeidsforhold.orgNummer)
+            val executeQuery = it.executeQuery()
+            if (executeQuery.next()) {
+                return executeQuery.getInt(1) > 0
+            }
+        }
+    }
+    return false
+}
+
 fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
     connection.use { connection ->
 
@@ -56,7 +78,6 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
         connection.prepareStatement(query).use {
             it.setObject(1, id)
             return it.executeQuery().toList { tilEgenmeldtSykmelding() }.first()
-
         }
     }
 }
