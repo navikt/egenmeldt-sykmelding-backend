@@ -50,7 +50,8 @@ fun TestApplicationEngine.setUpAuth(): Environment {
             syfoserviceQueueName = "",
             egenmeldtSykmeldingBackendDBURL = "",
             mountPathVault = "",
-            databaseName = ""
+            databaseName = "",
+            registerBasePath = ""
     )
 
     val path = "src/test/resources/jwkset.json"
