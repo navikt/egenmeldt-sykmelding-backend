@@ -15,16 +15,7 @@ class EgenmeldtSykmeldingService(private val database: DatabaseInterface) {
             throw TomBeforeFomDateException("Tom date is before Fom date")
         }
 
-//        val fellesformat = fellesformatUnmarshaller.unmarshal(
-//                StringReader(???)) as XMLEIFellesformat
-
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
-
-//        Lage sykmelding
-//        Mappe til XML fordi infotrygd og syofoservice (se i syfosm-mottak?)
-//        Legge på OK-kafka-topic
-//        ???
-//        Profit
     }
 
     suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
