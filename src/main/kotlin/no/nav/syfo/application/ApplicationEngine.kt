@@ -26,6 +26,8 @@ import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.arbeidsgivere.api.registrerArbeidsgiverApi
+import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.model.ReceivedSykmelding
@@ -42,6 +44,7 @@ fun createApplicationEngine(
     vaultSecrets: VaultSecrets,
     jwkProvider: JwkProvider,
     issuer: String,
+    arbeidsgiverService: ArbeidsgiverService,
     kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
@@ -77,6 +80,7 @@ fun createApplicationEngine(
                 setupSwaggerDocApi()
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerArbeidsgiverApi(arbeidsgiverService)
                 }
             }
         }

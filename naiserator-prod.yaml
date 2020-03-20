@@ -62,3 +62,5 @@ spec:
       value: jdbc:postgresql://A01DBVL011.adeo.no:5432/egenmeldt-sykmelding-backend
     - name: MOUNT_PATH_VAULT
       value: /postgresql/prod-fss
+    - name: REGISTER_BASE_PATH
+      value: https://modapp.adeo.no
