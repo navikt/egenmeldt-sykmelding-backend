@@ -8,7 +8,7 @@ servers:
   - url: 'https://egenmeldt-sykmelding-backend.nais.preprod.local'
 
 paths:
-  /sykmelding/egenmeldt:
+  /api/v1/sykmelding/egenmeldt:
     post:
       operationId: createEgenmeldtSykmelding
       description: Opprett ny egenmeldt sykmelding
@@ -25,7 +25,7 @@ paths:
           description: Unauthorized
         '403':
           description: Forbidden
-  /arbeidsforhold:
+  /api/v1/arbeidsforhold:
     get:
       operationId: getArbeidsforhold
       description: henter arbeidsforhold for innlogget bruker
@@ -77,11 +77,14 @@ components:
       required:
         - navn
         - orgNummer
+        - juridiskOrgNummer
         - stillingsprosent
       properties:
         navn:
           type: string
         orgNummer:
+          type: string
+        juridiskOrgNummer:
           type: string
         stillingsprosent:
           type: number

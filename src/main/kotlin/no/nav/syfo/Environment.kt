@@ -19,7 +19,8 @@ data class Environment(
     override val kafkaBootstrapServers: String = getEnvVar("KAFKA_BOOTSTRAP_SERVERS_URL"),
     val egenmeldtSykmeldingBackendDBURL: String = getEnvVar("EGENMELDT_SYKMELDING_BACKEND_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
-    val databaseName: String = getEnvVar("DATABASE_NAME", "egenmeldt-sykmelding-backend")
+    val databaseName: String = getEnvVar("DATABASE_NAME", "egenmeldt-sykmelding-backend"),
+    val registerBasePath: String = getEnvVar("REGISTER_BASE_PATH")
 ) : MqConfig, KafkaConfig
 
 data class VaultSecrets(
