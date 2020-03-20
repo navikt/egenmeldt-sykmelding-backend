@@ -18,6 +18,7 @@ class ArbeidsgiverServiceTest : Spek({
     val arbeidsforholdClient = mockkClass(ArbeidsforholdClient::class)
     val organisasjonsinfoClient = mockkClass(OrganisasjonsinfoClient::class)
     val stsOidcToken = mockkClass(StsOidcClient::class)
+
     val arbeidsgiverService = ArbeidsgiverService(arbeidsforholdClient, organisasjonsinfoClient, stsOidcToken)
     coEvery { organisasjonsinfoClient.getOrginfo(any()) } returns getOrganisasjonsinfo()
     coEvery { stsOidcToken.oidcToken() } returns OidcToken("token", "jwt", 1L)
