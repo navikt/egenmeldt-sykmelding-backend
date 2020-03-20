@@ -1,6 +1,8 @@
 package no.nav.syfo.sykmelding.api
 
 import io.ktor.application.call
+import io.ktor.auth.authentication
+import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -14,8 +16,10 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
 
     route("api/v1/sykmelding/egenmeldt") {
         post {
+            val principal: JWTPrincipal = call.authentication.principal()!!
+            val fnr = principal.payload.subject
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest)
+            egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, fnr)
             call.respond(HttpStatusCode.Created)
         }
     }

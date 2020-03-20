@@ -1,5 +1,9 @@
 package no.nav.syfo.sykmelding.service
 
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
 import java.time.LocalDate
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
@@ -11,8 +15,9 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingServiceTest : Spek({
-
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
+    val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
 
     describe("EgenmeldtSykmeldingService test") {
         it("Should be ok") {
@@ -22,7 +27,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         tom = LocalDate.now().plusDays(1)
                 ),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest)
+                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910")
             }
         }
         it("Should throw exception when tom is before form") {
@@ -33,7 +38,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             tom = LocalDate.now().minusDays(1)
                     ),
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest)
+                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910")
                 }
             }
         }

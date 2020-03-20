@@ -7,6 +7,10 @@ import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import io.mockk.Runs
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
@@ -16,6 +20,7 @@ import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
+import no.nav.syfo.sykmelding.service.OppdaterTopicsService
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth
@@ -25,15 +30,20 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingApiKtTest : Spek({
+    val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
     describe("Test EgenmeldtSykmeldingApi") {
         with(TestApplicationEngine()) {
             start()
             setUpTestApplication()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
-            val applicationState = ApplicationState(true, true)
+            setUpAuth()
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
+            val applicationState = ApplicationState(alive = true, ready = true)
             application.routing {
                 registerNaisApi(applicationState)
-                registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                authenticate {
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                }
             }
 
             it("Should be OK") {
@@ -46,6 +56,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678901",
+                        issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
                 }
@@ -61,6 +75,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678901",
+                        issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
                     getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
@@ -74,7 +92,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService()
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
