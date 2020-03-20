@@ -124,6 +124,11 @@ fun mapOcrFilTilFellesformat(
                             aktivitet = HelseOpplysningerArbeidsuforhet.Aktivitet().apply {
                                 periode.addAll(tilPeriodeListe())
                             }
+                            prognose = null
+                            utdypendeOpplysninger = null
+                            tiltak = null
+                            meldingTilNav = null
+                            meldingTilArbeidsgiver = null
                             kontaktMedPasient = HelseOpplysningerArbeidsuforhet.KontaktMedPasient().apply {
                                 kontaktDato = LocalDate.now()
                                 begrunnIkkeKontakt = null
@@ -210,6 +215,7 @@ fun tilMedisinskVurdering(): HelseOpplysningerArbeidsuforhet.MedisinskVurdering 
             }
         }
         isSkjermesForPasient = false
+        annenFraversArsak = null
         isSvangerskap = false
         isYrkesskade = false
         yrkesskadeDato = null
