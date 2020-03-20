@@ -3,7 +3,6 @@ package no.nav.syfo
 import no.nav.syfo.kafka.loadBaseConfig
 import no.nav.syfo.kafka.toProducerConfig
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.ValidationResult
 import org.apache.kafka.clients.producer.KafkaProducer
 
 class KafkaClients constructor(env: Environment, vaultSecrets: VaultSecrets) {
@@ -12,5 +11,4 @@ class KafkaClients constructor(env: Environment, vaultSecrets: VaultSecrets) {
     private val producerProperties = kafkaBaseConfig.toProducerConfig(env.applicationName, valueSerializer = JacksonKafkaSerializer::class)
 
     val kafkaProducerReceivedSykmelding = KafkaProducer<String, ReceivedSykmelding>(producerProperties)
-    val kafkaProducerValidationResult = KafkaProducer<String, ValidationResult>(producerProperties)
 }

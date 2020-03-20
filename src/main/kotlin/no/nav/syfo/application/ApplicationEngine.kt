@@ -29,7 +29,6 @@ import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.model.ValidationResult
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
 import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
@@ -43,8 +42,7 @@ fun createApplicationEngine(
     vaultSecrets: VaultSecrets,
     jwkProvider: JwkProvider,
     issuer: String,
-    kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>,
-    kafkaProducerValidationResult: KafkaProducer<String, ValidationResult>
+    kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -70,7 +68,7 @@ fun createApplicationEngine(
                 log.error("Caught exception", cause)
             }
         }
-        val oppdaterTopicsService = OppdaterTopicsService(kafkaProducerReceivedSykmelding = kafkaProducerReceivedSykmelding, kafkaProducerValidationResult = kafkaProducerValidationResult, sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic, sm2013BehandlingsUtfallTopic = env.sm2013BehandlingsUtfallTopic)
+        val oppdaterTopicsService = OppdaterTopicsService(kafkaProducerReceivedSykmelding = kafkaProducerReceivedSykmelding, sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic)
         val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
 
         routing {

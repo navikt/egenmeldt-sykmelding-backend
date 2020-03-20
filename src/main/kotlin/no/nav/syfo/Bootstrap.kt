@@ -47,8 +47,7 @@ fun main() {
         vaultSecrets,
         jwkProvider,
         wellKnown.issuer,
-        kafkaClients.kafkaProducerReceivedSykmelding,
-        kafkaClients.kafkaProducerValidationResult
+        kafkaClients.kafkaProducerReceivedSykmelding
     )
 
     val applicationServer = ApplicationServer(applicationEngine, applicationState)

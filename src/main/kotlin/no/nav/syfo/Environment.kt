@@ -20,8 +20,7 @@ data class Environment(
     val egenmeldtSykmeldingBackendDBURL: String = getEnvVar("EGENMELDT_SYKMELDING_BACKEND_DB_URL"),
     val mountPathVault: String = getEnvVar("MOUNT_PATH_VAULT"),
     val databaseName: String = getEnvVar("DATABASE_NAME", "egenmeldt-sykmelding-backend"),
-    val sm2013AutomaticHandlingTopic: String = getEnvVar("KAFKA_SM2013_AUTOMATIC_TOPIC", "privat-syfo-sm2013-automatiskBehandling"),
-    val sm2013BehandlingsUtfallTopic: String = getEnvVar("KAFKA_SM2013_BEHANDLING_TOPIC", "privat-syfo-sm2013-behandlingsUtfall")
+    val sm2013AutomaticHandlingTopic: String = getEnvVar("KAFKA_SM2013_AUTOMATIC_TOPIC", "privat-syfo-sm2013-automatiskBehandling")
 ) : MqConfig, KafkaConfig
 
 data class VaultSecrets(
