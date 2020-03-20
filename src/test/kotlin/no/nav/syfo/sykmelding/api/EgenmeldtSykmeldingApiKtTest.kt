@@ -11,9 +11,12 @@ import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.clearAllMocks
+import io.mockk.mockkClass
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
+import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
@@ -37,8 +40,14 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
+            val database = mockkClass(DatabaseInterface::class, relaxed = true)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
             val applicationState = ApplicationState(alive = true, ready = true)
+
+            beforeEachTest {
+                clearAllMocks()
+            }
+
             application.routing {
                 registerNaisApi(applicationState)
                 authenticate {
@@ -92,7 +101,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
+            val database = mockkClass(DatabaseInterface::class, relaxed = true)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)

@@ -26,6 +26,8 @@ import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.application.api.setupSwaggerDocApi
+import no.nav.syfo.db.Database
+import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.arbeidsgivere.api.registrerArbeidsgiverApi
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.log
@@ -72,7 +74,7 @@ fun createApplicationEngine(
             }
         }
         val oppdaterTopicsService = OppdaterTopicsService(kafkaProducerReceivedSykmelding = kafkaProducerReceivedSykmelding, sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic)
-        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService)
+        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, Database(env, VaultCredentialService()))
 
         routing {
             registerNaisApi(applicationState)

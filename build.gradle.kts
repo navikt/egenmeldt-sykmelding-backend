@@ -18,6 +18,7 @@ val kithHodemeldingVersion = "2019.07.30-12-26-5c924ef4f04022bbb850aaf299eb8e446
 val jacksonVersion = "2.9.7"
 val kluentVersion = "1.49"
 val kafkaEmbeddedVersion = "2.3.0"
+val postgresEmbeddedVersion = "0.13.1"
 val mockkVersion = "1.9.3"
 val javaTimeAdapterVersion = "1.1.3"
 val junitPlatformLauncher = "1.6.0"
@@ -78,6 +79,7 @@ dependencies {
     implementation("no.nav.helse:syfosm-common-kafka:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-models:$smCommonModelVersion")
     implementation("no.nav.helse:syfosm-common-rest-sts:$smCommonVersion")
+    implementation("no.nav.helse:syfosm-common-ws:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-networking:$smCommonVersion")
     implementation("no.nav.helse:syfosm-common-mq:$smCommonVersion")
 
@@ -122,6 +124,9 @@ dependencies {
     }
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+
+    testImplementation("no.nav:kafka-embedded-env:$kafkaEmbeddedVersion")
+    testImplementation("com.opentable.components:otj-pg-embedded:$postgresEmbeddedVersion")
 }
 
 swaggerSources {
