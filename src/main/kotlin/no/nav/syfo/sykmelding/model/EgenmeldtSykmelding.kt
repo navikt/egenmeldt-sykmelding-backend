@@ -5,6 +5,6 @@ import java.util.UUID
 data class EgenmeldtSykmelding(
     val id: UUID,
     val fodselsnummer: String,
-    val arbeidsforhold: Arbeidsforhold,
+    val arbeidsforhold: Arbeidsforhold?,
     val periode: Periode
 )

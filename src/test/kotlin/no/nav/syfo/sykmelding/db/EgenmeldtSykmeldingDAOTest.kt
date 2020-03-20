@@ -41,6 +41,19 @@ class EgenmeldtSykmeldingDAOTest : Spek({
                 assertTrue(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
             }
         }
+
+        it("Should allow arbeidsforhold = null") {
+            runBlocking {
+
+                val egenmeldtSykmelding = EgenmeldtSykmelding(UUID.randomUUID(),
+                        "12345678912",
+                        null,
+                        Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
+
+                assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
+            }
+        }
+
         it("Should  query by id") {
             runBlocking {
                 val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.id)

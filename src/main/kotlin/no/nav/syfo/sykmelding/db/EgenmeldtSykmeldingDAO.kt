@@ -56,7 +56,7 @@ fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmeld
         connection.prepareStatement(query).use {
             var i = 1;
             it.setString(i++, egenmeldtSykmelding.fodselsnummer)
-            it.setString(i++, egenmeldtSykmelding.arbeidsforhold.orgNummer)
+            it.setString(i++, egenmeldtSykmelding.arbeidsforhold?.orgNummer)
             val executeQuery = it.executeQuery()
             if (executeQuery.next()) {
                 return executeQuery.getInt(1) > 0
