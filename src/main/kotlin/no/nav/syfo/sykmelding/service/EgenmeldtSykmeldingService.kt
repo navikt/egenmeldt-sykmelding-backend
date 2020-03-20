@@ -4,6 +4,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
@@ -23,22 +24,30 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
     val dummyTssIdent = "80000821845"
 
     fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
+        if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
+            log.info("Registrerer sykmelding uten arbeidsforhold")
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), fnr)
+        }
         val list = sykmeldingRequest.arbeidsforhold.map {
             EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
         }
+        log.info("Oppretter {} sykmeldinger", list.size)
         for (egenmeldtSykmelding in list) {
             registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
         }
     }
 
     private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, fnr: String) {
+        log.info("Mottatt sykmelding med id {}", egenmeldtSykmelding.id)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
         if (tom.isBefore(fom)) {
+            log.warn("Tom-dato er før fom-dato for sykmeldingid {}", egenmeldtSykmelding.id)
             throw TomBeforeFomDateException("Tom date is before Fom date")
         }
 
         if (database.sykmeldingOverlapper(egenmeldtSykmelding)) {
+            log.error("Det finnes en sykmelding fra før for samme arbeidsgiver og samme bruker, {}", egenmeldtSykmelding.id)
             throw SykmeldingAlreadyExistsException("A sykmelding with the same arbeidsgiver already exists for the given fødselsnummer")
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
@@ -78,6 +87,6 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             fellesformat = fellesformatMarshaller.toString(fellesformat),
             tssid = dummyTssIdent
         )
-        oppdaterTopicsService.oppdaterTopics(receivedSykmelding)
+        oppdaterTopicsService.oppdaterOKTopic(receivedSykmelding)
     }
 }

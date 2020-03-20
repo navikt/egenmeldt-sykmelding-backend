@@ -24,7 +24,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
 
     beforeEachTest {
         clearAllMocks()
-        every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
+        every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
     }
 
     describe("EgenmeldtSykmeldingService test") {

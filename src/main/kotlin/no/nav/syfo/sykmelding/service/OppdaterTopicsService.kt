@@ -9,7 +9,7 @@ class OppdaterTopicsService(
     private val kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>,
     private val sm2013AutomaticHandlingTopic: String
 ) {
-    fun oppdaterTopics(receivedSykmelding: ReceivedSykmelding) {
+    fun oppdaterOKTopic(receivedSykmelding: ReceivedSykmelding) {
         log.info("Skriver sykmelding med id {} til ok-topic", receivedSykmelding.sykmelding.id)
         kafkaProducerReceivedSykmelding.send(ProducerRecord(sm2013AutomaticHandlingTopic, receivedSykmelding.sykmelding.id, receivedSykmelding))
     }
