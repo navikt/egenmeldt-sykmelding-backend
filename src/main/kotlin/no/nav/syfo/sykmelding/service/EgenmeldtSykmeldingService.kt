@@ -4,14 +4,15 @@ import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.model.ReceivedSykmelding
-import no.nav.syfo.objectMapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
-import no.nav.syfo.sykmelding.mapping.mapOcrFilTilFellesformat
+import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
+import no.nav.syfo.sykmelding.util.fellesformatMarshaller
 import no.nav.syfo.sykmelding.util.get
+import no.nav.syfo.sykmelding.util.toString
 
 class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopicsService) {
     val dummyTssIdent = "80000821845"
@@ -29,12 +30,12 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             fornavn = "Fanny",
             mellomnavn = null,
             etternavn = "Storm")
-        val fellesformat = mapOcrFilTilFellesformat(sykmeldt = pasient, sykmeldingId = sykmeldingId)
+        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = sykmeldingId)
         val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
         val msgHead = fellesformat.get<XMLMsgHead>()
 
         val sykmelding = healthInformation.toSykmelding(
-            sykmeldingId = UUID.randomUUID().toString(),
+            sykmeldingId = sykmeldingId,
             pasientAktoerId = pasient.aktorId,
             legeAktoerId = pasient.aktorId,
             msgId = sykmeldingId,
@@ -54,7 +55,7 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             legekontorReshId = null,
             mottattDato = LocalDateTime.now(),
             rulesetVersion = healthInformation.regelSettVersjon,
-            fellesformat = objectMapper.writeValueAsString(fellesformat),
+            fellesformat = fellesformatMarshaller.toString(fellesformat),
             tssid = dummyTssIdent
         )
         oppdaterTopicsService.oppdaterTopics(receivedSykmelding)

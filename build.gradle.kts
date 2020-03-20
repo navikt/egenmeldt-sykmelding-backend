@@ -30,6 +30,9 @@ val postgresVersion = "42.2.5"
 val flywayVersion = "5.2.4"
 val hikariVersion = "3.3.0"
 val vaultJavaDriveVersion = "3.1.0"
+val jaxbTimeAdaptersVersion = "1.1.3"
+val jaxbApiVersion = "2.4.0-b180830.0359"
+val jaxbRuntimeVersion = "2.4.0-b180830.0438"
 
 plugins {
     kotlin("jvm") version "1.3.61"
@@ -94,6 +97,10 @@ dependencies {
     implementation("com.zaxxer:HikariCP:$hikariVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     implementation("com.bettercloud:vault-java-driver:$vaultJavaDriveVersion")
+
+    implementation ("com.migesok:jaxb-java-time-adapters:$jaxbTimeAdaptersVersion")
+    implementation("javax.xml.bind:jaxb-api:$jaxbApiVersion")
+    implementation("org.glassfish.jaxb:jaxb-runtime:$jaxbRuntimeVersion")
 
     implementation("redis.clients:jedis:$jedisVersion")
     swaggerUI( "org.webjars:swagger-ui:$swaggerUiVersion")

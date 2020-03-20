@@ -24,7 +24,7 @@ import no.nav.helse.sm2013.NavnType
 import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.Pasient
 
-fun mapOcrFilTilFellesformat(
+fun opprettFellesformat(
     sykmeldt: Pasient,
     sykmeldingId: String
 ): XMLEIFellesformat {
@@ -209,9 +209,9 @@ fun tilMedisinskVurdering(): HelseOpplysningerArbeidsuforhet.MedisinskVurdering 
     return HelseOpplysningerArbeidsuforhet.MedisinskVurdering().apply {
         hovedDiagnose = HelseOpplysningerArbeidsuforhet.MedisinskVurdering.HovedDiagnose().apply {
             diagnosekode = CV().apply {
-                s = "R991"
+                s = "2.16.578.1.12.4.1.1.7170"
                 v = "R991"
-                dn = "Mistenkt covid-19"
+                dn = "COVID-19 (MISTENKT ELLER BEKREFTET)"
             }
         }
         isSkjermesForPasient = false
