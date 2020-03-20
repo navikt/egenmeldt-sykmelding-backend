@@ -1,6 +1,7 @@
 package no.nav.syfo.sykmelding.service
 
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -19,8 +20,12 @@ import org.spekframework.spek2.style.specification.describe
 class EgenmeldtSykmeldingServiceTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
-    every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+
+    beforeEachTest {
+        clearAllMocks()
+        every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
+    }
 
     describe("EgenmeldtSykmeldingService test") {
         it("Should be ok") {

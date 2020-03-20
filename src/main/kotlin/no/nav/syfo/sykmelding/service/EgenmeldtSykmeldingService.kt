@@ -1,13 +1,13 @@
 package no.nav.syfo.sykmelding.service
 
+import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
-import java.time.LocalDateTime
-import no.nav.helse.msgHead.XMLMsgHead
-import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
@@ -26,7 +26,6 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         val list = sykmeldingRequest.arbeidsforhold.map {
             EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
         }
-
         for (egenmeldtSykmelding in list) {
             registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
         }

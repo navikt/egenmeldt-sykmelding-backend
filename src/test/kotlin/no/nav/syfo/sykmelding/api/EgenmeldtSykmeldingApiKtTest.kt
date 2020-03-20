@@ -8,10 +8,10 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.mockk.Runs
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import io.mockk.clearAllMocks
 import io.mockk.mockkClass
 import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
@@ -34,19 +34,20 @@ import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
-    every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
+    val database = mockkClass(DatabaseInterface::class, relaxed = true)
+
+    beforeEachTest {
+        clearAllMocks()
+        every { oppdaterTopicsService.oppdaterTopics(any()) } just Runs
+    }
+
     describe("Test EgenmeldtSykmeldingApi") {
         with(TestApplicationEngine()) {
             start()
             setUpTestApplication()
             setUpAuth()
-            val database = mockkClass(DatabaseInterface::class, relaxed = true)
             val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
             val applicationState = ApplicationState(alive = true, ready = true)
-
-            beforeEachTest {
-                clearAllMocks()
-            }
 
             application.routing {
                 registerNaisApi(applicationState)
@@ -101,7 +102,6 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val database = mockkClass(DatabaseInterface::class, relaxed = true)
             val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
             application.routing {
                 authenticate {
