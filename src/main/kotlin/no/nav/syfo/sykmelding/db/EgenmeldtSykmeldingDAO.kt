@@ -30,8 +30,8 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
         connection.prepareStatement(insertQuery).use {
             it.setObject(i++, egenmeldtSykmelding.id)
             it.setString(i++, egenmeldtSykmelding.fodselsnummer)
-            it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.tom))
             it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.fom))
+            it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.tom))
             it.setObject(i++, PGobject().also {
                 it.type = "json"
                 it.value = jacksonObjectMapper().writeValueAsString(egenmeldtSykmelding.arbeidsforhold)
@@ -44,26 +44,36 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
     }
 }
 
-fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID) {
-
-
+fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
     connection.use { connection ->
 
         val query: String =
                 """
                     SELECT * 
                     FROM egenmeldt_sykmelding 
-                    WHERE id = ?
-                """
+                    WHERE id = ? """
 
         connection.prepareStatement(query).use {
             it.setObject(1, id)
-            it.executeQuery()
-                    .toList { tilEgenmeldtSykmelding() }
+            return it.executeQuery().toList { tilEgenmeldtSykmelding() }.first()
+
         }
-
     }
+}
 
+fun DatabaseInterface.finnEgenmeldtSykmelding(pasientfnr: String): EgenmeldtSykmelding {
+    connection.use { connection ->
+
+        val query =
+                """ SELECT * 
+                    FROM egenmeldt_sykmelding 
+                    WHERE pasientfnr = ? """
+
+        connection.prepareStatement(query).use {
+            it.setObject(1, pasientfnr)
+            return it.executeQuery().toList { tilEgenmeldtSykmelding() }.first()
+        }
+    }
 }
 
 fun ResultSet.tilEgenmeldtSykmelding(): EgenmeldtSykmelding {

@@ -9,6 +9,8 @@ import no.nav.syfo.sykmelding.util.TestDB
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 import java.util.UUID
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class EgenmeldtSykmeldingDAOTest : Spek({
 
@@ -25,10 +27,19 @@ class EgenmeldtSykmeldingDAOTest : Spek({
                 testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
             }
         }
-        it("Should  query ") {
+        it("Should  query by id") {
             runBlocking {
-                testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.id)
+                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.id)
+                assertEquals(egenmeldtSykmelding, res)
             }
         }
+
+        it("Should  query by fødselsnummer") {
+            runBlocking {
+                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fodselsnummer)
+                assertEquals(egenmeldtSykmelding, res)
+            }
+        }
+
     }
 })
