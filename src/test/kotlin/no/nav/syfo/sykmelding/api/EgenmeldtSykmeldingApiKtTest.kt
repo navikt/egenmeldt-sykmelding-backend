@@ -24,7 +24,6 @@ import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
-import no.nav.syfo.sykmelding.util.TestDB
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth

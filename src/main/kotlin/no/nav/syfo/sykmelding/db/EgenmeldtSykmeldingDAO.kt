@@ -1,11 +1,13 @@
 package no.nav.syfo.sykmelding.db
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
-import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
+import org.postgresql.util.PGobject
 import java.sql.Date
 import java.sql.ResultSet
 
@@ -19,10 +21,8 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
                         pasientfnr, 
                         fom, 
                         tom, 
-                        arbeidsforhold_navn,
-                        arbeidsforhold_orgnr,
-                        arbeidsforhold_stillingsprosent) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?);
+                        arbeidsforhold) 
+                    VALUES (?, ?, ?, ?, ?);
                 """
 
         var i = 1
@@ -32,9 +32,10 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
             it.setString(i++, egenmeldtSykmelding.fodselsnummer)
             it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.tom))
             it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.fom))
-            it.setString(i++, egenmeldtSykmelding.arbeidsforhold.navn)
-            it.setString(i++, egenmeldtSykmelding.arbeidsforhold.orgNummer)
-            it.setDouble(i++, egenmeldtSykmelding.arbeidsforhold.stillingsprosent)
+            it.setObject(i++, PGobject().also {
+                it.type = "json"
+                it.value = jacksonObjectMapper().writeValueAsString(egenmeldtSykmelding.arbeidsforhold)
+            })
 
             it.execute()
         }
@@ -69,10 +70,7 @@ fun ResultSet.tilEgenmeldtSykmelding(): EgenmeldtSykmelding {
     return EgenmeldtSykmelding(
             id = getObject("id") as UUID,
             fodselsnummer = getString("pasientfnr"),
-            arbeidsforhold = Arbeidsforhold(
-                    getString("arbeidsforhold_navn"),
-                    getString("arbeidsforhold_orgnr"),
-                    getDouble("arbeidsforhold_stillingsprosent")),
+            arbeidsforhold = jacksonObjectMapper().readValue(getString("arbeidsforhold")),
             periode = Periode(
                     getDate("fom").toLocalDate(),
                     getDate("tom").toLocalDate()))
