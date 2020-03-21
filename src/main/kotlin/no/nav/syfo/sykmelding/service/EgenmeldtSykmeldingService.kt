@@ -13,6 +13,7 @@ import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
+import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
@@ -21,7 +22,6 @@ import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
-import no.nav.syfo.sykmelding.util.LoggingMeta
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
@@ -75,11 +75,16 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val fnr = egenmeldtSykmelding.fnr
         val sykmeldingId = egenmeldtSykmelding.id.toString()
 
-        val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), LoggingMeta("??", "??", sykmeldingId))
+        val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), sykmeldingId)
+        val patientIdents = aktoerIds[fnr]
+
+        if (patientIdents == null || patientIdents.feilmelding != null) {
+            throw AktoerNotFoundException("Patient with fnr {fnr} not found in registry, error:  {patientIdents.feilmelding}")
+        }
 
         val pasient = Pasient(
             fnr = fnr,
-            aktorId = "1826914851343",
+            aktorId = patientIdents.identer!!.first().ident,
             fornavn = "Fanny",
             mellomnavn = null,
             etternavn = "Storm")

@@ -12,7 +12,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.client.StsOidcClient
 import no.nav.syfo.helpers.retry
 import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
-import no.nav.syfo.sykmelding.util.LoggingMeta
 
 @KtorExperimentalAPI
 class AktoerIdClient(
@@ -23,7 +22,7 @@ class AktoerIdClient(
 ) {
     suspend fun getAktoerIds(
         personNumbers: List<String>,
-        loggingMeta: LoggingMeta
+        sykmeldingId: String
     ): Map<String, IdentInfoResult> =
             retry("get_aktoerids") {
                 httpClient.get<HttpResponse>("$endpointUrl/identer") {
@@ -32,7 +31,7 @@ class AktoerIdClient(
                     headers {
                         append("Authorization", "Bearer ${oidcToken.access_token}")
                         append("Nav-Consumer-Id", serviceUserName)
-                        append("Nav-Call-Id", loggingMeta.msgId)
+                        append("Nav-Call-Id", sykmeldingId)
                         append("Nav-Personidenter", personNumbers.joinToString(","))
                     }
                     parameter("gjeldende", "true")
