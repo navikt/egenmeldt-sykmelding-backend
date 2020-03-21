@@ -14,6 +14,7 @@ import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
@@ -23,7 +24,7 @@ import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
 
-class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopicsService, private val database: DatabaseInterface) {
+class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopicsService, aktoerIdClient: AktoerIdClient, private val database: DatabaseInterface) {
     val dummyTssIdent = "80000821845"
 
     fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {

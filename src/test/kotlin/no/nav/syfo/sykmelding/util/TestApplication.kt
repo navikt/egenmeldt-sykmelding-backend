@@ -51,7 +51,8 @@ fun TestApplicationEngine.setUpAuth(): Environment {
             egenmeldtSykmeldingBackendDBURL = "",
             mountPathVault = "",
             databaseName = "",
-            registerBasePath = ""
+            registerBasePath = "",
+            aktoerregisterV1Url = ""
     )
 
     val path = "src/test/resources/jwkset.json"

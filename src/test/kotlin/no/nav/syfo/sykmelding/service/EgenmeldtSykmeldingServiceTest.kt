@@ -11,6 +11,7 @@ import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -19,8 +20,9 @@ import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingServiceTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
 
     beforeEachTest {
         clearAllMocks()
