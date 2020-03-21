@@ -33,6 +33,7 @@ import no.nav.syfo.db.VaultCredentialService
 import no.nav.syfo.log
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
 import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
@@ -47,7 +48,8 @@ fun createApplicationEngine(
     jwkProvider: JwkProvider,
     issuer: String,
     arbeidsgiverService: ArbeidsgiverService,
-    kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>
+    kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>,
+    pdlPersonService: PdlPersonService
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -74,7 +76,7 @@ fun createApplicationEngine(
             }
         }
         val oppdaterTopicsService = OppdaterTopicsService(kafkaProducerReceivedSykmelding = kafkaProducerReceivedSykmelding, sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic)
-        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, Database(env, VaultCredentialService()))
+        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, Database(env, VaultCredentialService()), pdlPersonService)
 
         routing {
             registerNaisApi(applicationState)

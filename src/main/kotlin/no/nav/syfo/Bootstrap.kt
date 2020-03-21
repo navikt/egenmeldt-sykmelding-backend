@@ -22,6 +22,8 @@ import no.nav.syfo.arbeidsgivere.integration.arbeidsforhold.client.Arbeidsforhol
 import no.nav.syfo.arbeidsgivere.integration.organisasjon.client.OrganisasjonsinfoClient
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.pdl.client.PdlClient
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.util.KafkaClients
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -66,6 +68,10 @@ fun main() {
     val organisasjonsinfoClient = OrganisasjonsinfoClient(httpClient, env.registerBasePath)
     val arbeidsgiverService = ArbeidsgiverService(arbeidsforholdClient, organisasjonsinfoClient, stsOidcClient)
 
+    val pdlClient = PdlClient(httpClient,
+            env.pdlGraphqlPath,
+            PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText())
+    val pdlService = PdlPersonService(pdlClient, stsOidcClient)
     val applicationEngine = createApplicationEngine(
             env,
             applicationState,
@@ -73,7 +79,8 @@ fun main() {
             jwkProvider,
             wellKnown.issuer,
             arbeidsgiverService,
-            kafkaClients.kafkaProducerReceivedSykmelding
+            kafkaClients.kafkaProducerReceivedSykmelding,
+            pdlService
     )
 
     val applicationServer = ApplicationServer(applicationEngine, applicationState)

@@ -64,3 +64,5 @@ spec:
       value: /postgresql/prod-fss
     - name: REGISTER_BASE_PATH
       value: https://modapp.adeo.no
+    - name: PDL_GRAPHQL_PATH
+      value: https://pdl-api.nais.adeo.no/graphql
