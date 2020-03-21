@@ -22,6 +22,7 @@ import no.nav.syfo.arbeidsgivere.integration.arbeidsforhold.client.Arbeidsforhol
 import no.nav.syfo.arbeidsgivere.integration.organisasjon.client.OrganisasjonsinfoClient
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.util.KafkaClients
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -65,6 +66,8 @@ fun main() {
     val arbeidsforholdClient = ArbeidsforholdClient(httpClient, env.registerBasePath)
     val organisasjonsinfoClient = OrganisasjonsinfoClient(httpClient, env.registerBasePath)
     val arbeidsgiverService = ArbeidsgiverService(arbeidsforholdClient, organisasjonsinfoClient, stsOidcClient)
+    val oidcClient = StsOidcClient(vaultSecrets.serviceuserUsername, vaultSecrets.serviceuserPassword)
+    val aktoerIdClient = AktoerIdClient(env.aktoerregisterV1Url, oidcClient, httpClient)
 
     val applicationEngine = createApplicationEngine(
             env,
