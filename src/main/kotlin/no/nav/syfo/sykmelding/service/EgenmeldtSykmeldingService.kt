@@ -27,13 +27,14 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
             log.info("Registrerer sykmelding uten arbeidsforhold")
             registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), fnr)
-        }
-        val list = sykmeldingRequest.arbeidsforhold.map {
-            EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
-        }
-        log.info("Oppretter {} sykmeldinger", list.size)
-        for (egenmeldtSykmelding in list) {
-            registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
+        } else {
+            val list = sykmeldingRequest.arbeidsforhold.map {
+                EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
+            }
+            log.info("Oppretter {} sykmeldinger", list.size)
+            for (egenmeldtSykmelding in list) {
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
+            }
         }
     }
 
@@ -78,8 +79,8 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             personNrLege = pasient.fnr,
             navLogId = sykmeldingId,
             msgId = sykmeldingId,
-            legekontorOrgNr = null,
-            legekontorOrgName = "",
+            legekontorOrgNr = "889640782",
+            legekontorOrgName = "NAV",
             legekontorHerId = null,
             legekontorReshId = null,
             mottattDato = LocalDateTime.now(),
