@@ -22,6 +22,7 @@ import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
+import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfo
 import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
@@ -46,7 +47,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
-        coEvery { aktoerIdClient.getAktoerIds(any(), any()) } returns mapOf(Pair("foo", IdentInfoResult(null, null)))
+        coEvery { aktoerIdClient.getAktoerIds(any(), any()) } returns mapOf(
+                Pair("12345678910",
+                        IdentInfoResult(listOf(
+                                IdentInfo("12345678910", "identgruppe", true)), null)))
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
@@ -75,9 +79,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
-                        "loginservice",
-                        subject = "12345678901",
-                        issuer = "issuer")}")
+                            "loginservice",
+                            subject = "12345678910",
+                            issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
                 }
@@ -94,9 +98,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
-                        "loginservice",
-                        subject = "12345678901",
-                        issuer = "issuer")}")
+                            "loginservice",
+                            subject = "12345678910",
+                            issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
                     getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
@@ -129,7 +133,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
                             "loginservice",
-                            subject = "12345678901",
+                            subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
@@ -146,7 +150,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
                             "loginservice2",
-                            subject = "12345678901",
+                            subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Unauthorized

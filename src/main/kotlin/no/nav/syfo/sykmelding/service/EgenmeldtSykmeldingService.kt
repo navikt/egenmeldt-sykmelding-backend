@@ -79,7 +79,8 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val patientIdents = aktoerIds[fnr]
 
         if (patientIdents == null || patientIdents.feilmelding != null) {
-            throw AktoerNotFoundException("Patient with fnr {fnr} not found in registry, error:  {patientIdents.feilmelding}")
+            throw AktoerNotFoundException("Patient with fnr: " + fnr + " not found in registry, error: " + (patientIdents?.feilmelding
+                    ?: ""))
         }
 
         val pasient = Pasient(
