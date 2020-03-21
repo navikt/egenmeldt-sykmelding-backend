@@ -57,7 +57,6 @@ data class RenewCredentialsTaskData(
     val role: Role
 )
 
-// TODO: Er dette egentlig det samme som VaultSecrets i Environment.kt?
 data class VaultCredentials(
     val leaseId: String,
     val username: String,
