@@ -38,19 +38,19 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
             log.info("Registrerer sykmelding uten arbeidsforhold")
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), fnr)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode))
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
                 EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
             }
             log.info("Oppretter {} sykmeldinger", list.size)
             for (egenmeldtSykmelding in list) {
-                registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding)
             }
         }
     }
 
-    private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, fnr: String) {
+    private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
         log.info("Mottatt sykmelding med id {}", egenmeldtSykmelding.id)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
@@ -65,12 +65,15 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(fnr = fnr, sykmeldingId = egenmeldtSykmelding.id.toString()))
+        oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(egenmeldtSykmelding))
     }
 
-    suspend fun opprettReceivedSykmelding(fnr: String, sykmeldingId: String): ReceivedSykmelding {
+    suspend fun opprettReceivedSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding): ReceivedSykmelding {
         val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
             .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
+
+        val fnr = egenmeldtSykmelding.fodselsnummer
+        val sykmeldingId = egenmeldtSykmelding.id.toString()
 
         val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), LoggingMeta("??", "??", sykmeldingId))
 
