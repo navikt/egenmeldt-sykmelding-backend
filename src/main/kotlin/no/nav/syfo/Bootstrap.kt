@@ -22,6 +22,7 @@ import no.nav.syfo.arbeidsgivere.integration.arbeidsforhold.client.Arbeidsforhol
 import no.nav.syfo.arbeidsgivere.integration.organisasjon.client.OrganisasjonsinfoClient
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.sykmelding.util.KafkaClients
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
