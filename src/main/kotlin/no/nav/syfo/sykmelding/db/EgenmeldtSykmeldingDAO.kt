@@ -2,14 +2,14 @@ package no.nav.syfo.sykmelding.db
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.sql.Date
+import java.sql.ResultSet
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import org.postgresql.util.PGobject
-import java.sql.Date
-import java.sql.ResultSet
 
 fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
     connection.use { connection ->
@@ -54,7 +54,7 @@ fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmeld
         """
 
         connection.prepareStatement(query).use {
-            var i = 1;
+            var i = 1
             it.setString(i++, egenmeldtSykmelding.fodselsnummer)
             it.setString(i++, egenmeldtSykmelding.arbeidsforhold?.orgNummer)
             val executeQuery = it.executeQuery()

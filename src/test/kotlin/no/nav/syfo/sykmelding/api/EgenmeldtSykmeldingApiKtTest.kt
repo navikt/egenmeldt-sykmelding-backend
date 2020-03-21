@@ -1,17 +1,16 @@
 package no.nav.syfo.sykmelding.api
 
-import com.auth0.jwt.interfaces.Payload
 import io.ktor.auth.authenticate
-import io.ktor.auth.authentication
-import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.every
+import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
 import java.time.LocalDate
@@ -24,6 +23,7 @@ import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
+import no.nav.syfo.sykmelding.service.OppdaterTopicsService
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth
@@ -33,24 +33,27 @@ import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingApiKtTest : Spek({
+    val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    val database = mockkClass(DatabaseInterface::class, relaxed = true)
+
+    beforeEachTest {
+        clearAllMocks()
+        every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
+    }
+
     describe("Test EgenmeldtSykmeldingApi") {
         with(TestApplicationEngine()) {
             start()
             setUpTestApplication()
-            val database = mockkClass(DatabaseInterface::class, relaxed = true)
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(database)
-            val applicationState = ApplicationState(true, true)
-
-            val mockPayload = mockk<Payload>()
-
-            beforeEachTest {
-                clearAllMocks()
-                every { mockPayload.subject } returns "pasient_fnr"
-            }
+            setUpAuth()
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+            val applicationState = ApplicationState(alive = true, ready = true)
 
             application.routing {
                 registerNaisApi(applicationState)
-                registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                authenticate {
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                }
             }
 
             it("Should be OK") {
@@ -63,7 +66,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
-                    call.authentication.principal = JWTPrincipal(mockPayload)
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678901",
+                        issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
                 }
@@ -79,7 +85,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
-                    call.authentication.principal = JWTPrincipal(mockPayload)
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678901",
+                        issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
                     getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
@@ -93,8 +102,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val database = mockkClass(DatabaseInterface::class, relaxed = true)
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)

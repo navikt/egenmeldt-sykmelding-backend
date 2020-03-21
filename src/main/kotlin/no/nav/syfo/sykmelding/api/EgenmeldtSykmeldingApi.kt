@@ -16,12 +16,9 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
 
     route("api/v1/sykmelding/egenmeldt") {
         post {
-
             val principal: JWTPrincipal = call.authentication.principal()!!
             val fnr = principal.payload.subject
-
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-
             egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, fnr)
             call.respond(HttpStatusCode.Created)
         }

@@ -2,6 +2,7 @@ package no.nav.syfo
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -21,10 +22,17 @@ import no.nav.syfo.arbeidsgivere.integration.arbeidsforhold.client.Arbeidsforhol
 import no.nav.syfo.arbeidsgivere.integration.organisasjon.client.OrganisasjonsinfoClient
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.sykmelding.util.KafkaClients
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 val log: Logger = LoggerFactory.getLogger("no.nav.syfo.egenmeldt-sykmelding-backend")
+
+val objectMapper: ObjectMapper = ObjectMapper().apply {
+    registerKotlinModule()
+    registerModule(JavaTimeModule())
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+}
 
 @KtorExperimentalAPI
 fun main() {
@@ -38,6 +46,7 @@ fun main() {
             .rateLimited(10, 1, TimeUnit.MINUTES)
             .build()
 
+    val kafkaClients = KafkaClients(env, vaultSecrets)
     val applicationState = ApplicationState()
 
     DefaultExports.initialize()
@@ -63,7 +72,8 @@ fun main() {
             vaultSecrets,
             jwkProvider,
             wellKnown.issuer,
-            arbeidsgiverService
+            arbeidsgiverService,
+            kafkaClients.kafkaProducerReceivedSykmelding
     )
 
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
