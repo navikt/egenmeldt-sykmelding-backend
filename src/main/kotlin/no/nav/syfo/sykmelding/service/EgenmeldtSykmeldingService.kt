@@ -2,7 +2,11 @@ package no.nav.syfo.sykmelding.service
 
 import java.time.LocalDateTime
 import java.util.UUID
+import javax.xml.bind.JAXBContext
+import javax.xml.bind.Marshaller
+import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
+import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
@@ -16,7 +20,6 @@ import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
-import no.nav.syfo.sykmelding.util.fellesformatMarshaller
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
 
@@ -53,7 +56,13 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        val sykmeldingId = egenmeldtSykmelding.id.toString()
+        oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(fnr = fnr, sykmeldingId = egenmeldtSykmelding.id.toString()))
+    }
+
+    fun opprettReceivedSykmelding(fnr: String, sykmeldingId: String): ReceivedSykmelding {
+        val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
+            .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
+
         val pasient = Pasient(
             fnr = fnr,
             aktorId = "1826914851343",
@@ -72,7 +81,7 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             signaturDato = msgHead.msgInfo.genDate
         )
 
-        val receivedSykmelding = ReceivedSykmelding(
+        return ReceivedSykmelding(
             sykmelding = sykmelding,
             personNrPasient = fnr,
             tlfPasient = healthInformation.pasient.kontaktInfo.firstOrNull()?.teleAddress?.v,
@@ -88,6 +97,5 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
             fellesformat = fellesformatMarshaller.toString(fellesformat),
             tssid = dummyTssIdent
         )
-        oppdaterTopicsService.oppdaterOKTopic(receivedSykmelding)
     }
 }
