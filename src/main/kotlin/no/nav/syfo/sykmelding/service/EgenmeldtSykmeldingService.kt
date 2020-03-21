@@ -1,5 +1,6 @@
 package no.nav.syfo.sykmelding.service
 
+import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.xml.bind.JAXBContext
@@ -20,14 +21,21 @@ import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
+import no.nav.syfo.sykmelding.util.LoggingMeta
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
 
-class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopicsService, aktoerIdClient: AktoerIdClient, private val database: DatabaseInterface) {
+@KtorExperimentalAPI
+class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
+    private val oppdaterTopicsService: OppdaterTopicsService,
+    private val aktoerIdClient: AktoerIdClient,
+    private val database: DatabaseInterface
+) {
+
     val dummyTssIdent = "80000821845"
 
-    fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
+    suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
             log.info("Registrerer sykmelding uten arbeidsforhold")
             registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), fnr)
@@ -42,7 +50,7 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         }
     }
 
-    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, fnr: String) {
+    private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, fnr: String) {
         log.info("Mottatt sykmelding med id {}", egenmeldtSykmelding.id)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
@@ -60,9 +68,11 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(fnr = fnr, sykmeldingId = egenmeldtSykmelding.id.toString()))
     }
 
-    fun opprettReceivedSykmelding(fnr: String, sykmeldingId: String): ReceivedSykmelding {
+    suspend fun opprettReceivedSykmelding(fnr: String, sykmeldingId: String): ReceivedSykmelding {
         val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
             .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
+
+        val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), LoggingMeta("??", "??", sykmeldingId))
 
         val pasient = Pasient(
             fnr = fnr,

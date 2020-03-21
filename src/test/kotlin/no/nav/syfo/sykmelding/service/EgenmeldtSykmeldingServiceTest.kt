@@ -1,7 +1,9 @@
 package no.nav.syfo.sykmelding.service
 
+import io.ktor.util.KtorExperimentalAPI
 import io.mockk.Runs
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -12,12 +14,14 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
+import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
+@KtorExperimentalAPI
 class EgenmeldtSykmeldingServiceTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val aktoerIdClient = mockk<AktoerIdClient>()
@@ -27,6 +31,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
+        coEvery { aktoerIdClient.getAktoerIds(any(), any()) } returns mapOf(Pair("foo", IdentInfoResult(null, null)))
     }
 
     describe("EgenmeldtSykmeldingService test") {

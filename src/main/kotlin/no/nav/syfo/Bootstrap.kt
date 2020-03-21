@@ -77,7 +77,7 @@ fun main() {
 
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(
             oppdaterTopicsService,
-            AktoerIdClient(env.aktoerregisterV1Url, StsOidcClient(vaultSecrets.serviceuserUsername, vaultSecrets.serviceuserPassword), httpClient),
+            AktoerIdClient(env.aktoerregisterV1Url, StsOidcClient(vaultSecrets.serviceuserUsername, vaultSecrets.serviceuserPassword), httpClient, vaultSecrets.serviceuserUsername),
             Database(env, VaultCredentialService()))
 
     val applicationEngine = createApplicationEngine(

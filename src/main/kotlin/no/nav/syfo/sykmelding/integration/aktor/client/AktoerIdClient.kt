@@ -15,14 +15,14 @@ import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 import no.nav.syfo.sykmelding.util.LoggingMeta
 
 @KtorExperimentalAPI
-class AktoerIdClient (
-        private val endpointUrl: String,
-        private val stsClient: StsOidcClient,
-        private val httpClient: HttpClient
+class AktoerIdClient(
+    private val endpointUrl: String,
+    private val stsClient: StsOidcClient,
+    private val httpClient: HttpClient,
+    private val serviceUserName: String
 ) {
     suspend fun getAktoerIds(
         personNumbers: List<String>,
-        username: String,
         loggingMeta: LoggingMeta
     ): Map<String, IdentInfoResult> =
             retry("get_aktoerids") {
@@ -31,7 +31,7 @@ class AktoerIdClient (
                     val oidcToken = stsClient.oidcToken()
                     headers {
                         append("Authorization", "Bearer ${oidcToken.access_token}")
-                        append("Nav-Consumer-Id", username)
+                        append("Nav-Consumer-Id", serviceUserName)
                         append("Nav-Call-Id", loggingMeta.msgId)
                         append("Nav-Personidenter", personNumbers.joinToString(","))
                     }
