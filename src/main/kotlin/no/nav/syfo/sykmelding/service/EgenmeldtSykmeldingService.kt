@@ -72,7 +72,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
             .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
 
-        val fnr = egenmeldtSykmelding.fodselsnummer
+        val fnr = egenmeldtSykmelding.fnr
         val sykmeldingId = egenmeldtSykmelding.id.toString()
 
         val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), LoggingMeta("??", "??", sykmeldingId))
