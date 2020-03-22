@@ -1,7 +1,9 @@
 package no.nav.syfo.sykmelding.service
 
+import io.ktor.util.KtorExperimentalAPI
 import io.mockk.Runs
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -12,7 +14,9 @@ import javax.jms.Session
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -20,18 +24,22 @@ import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
+@KtorExperimentalAPI
 class EgenmeldtSykmeldingServiceTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
     val session = mockk<Session>()
     val syfoserviceProducer = mockk<MessageProducer>()
     val syfoserviceService = mockk<SyfoserviceService>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, syfoserviceService)
+    val pdlService = mockk<PdlPersonService>()
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService)
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
+        coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
     }
 
     describe("EgenmeldtSykmeldingService test") {

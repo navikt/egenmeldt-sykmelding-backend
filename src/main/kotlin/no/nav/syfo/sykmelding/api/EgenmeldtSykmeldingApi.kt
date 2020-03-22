@@ -11,9 +11,11 @@ import io.ktor.routing.post
 import io.ktor.routing.route
 import javax.jms.MessageProducer
 import javax.jms.Session
+import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 
+@KtorExperimentalAPI
 fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtSykmeldingService, session: Session, syfoserviceProducer: MessageProducer) {
 
     route("api/v1/sykmelding/egenmeldt") {

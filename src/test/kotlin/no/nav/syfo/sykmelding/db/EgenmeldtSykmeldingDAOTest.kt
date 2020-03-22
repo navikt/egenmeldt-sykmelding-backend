@@ -66,7 +66,7 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
         it("Should  query by fødselsnummer") {
             runBlocking {
-                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fodselsnummer)
+                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
                 assertEquals(egenmeldtSykmelding, res)
             }
         }
