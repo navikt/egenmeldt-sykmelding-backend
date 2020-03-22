@@ -146,6 +146,7 @@ fun opprettFellesformat(
                                 systemNavn = "Egenmeldt"
                                 systemVersjon = "1"
                             }
+                            strekkode = "123456789qwerty"
                         })
                     }
                 }
