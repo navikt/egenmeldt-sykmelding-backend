@@ -13,7 +13,6 @@ import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
-import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
@@ -75,17 +74,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val fnr = egenmeldtSykmelding.fnr
         val sykmeldingId = egenmeldtSykmelding.id.toString()
 
-        val aktoerIds = aktoerIdClient.getAktoerIds(listOf(fnr), sykmeldingId)
-        val patientIdents = aktoerIds[fnr]
-
-        if (patientIdents == null || patientIdents.feilmelding != null) {
-            throw AktoerNotFoundException("Patient with fnr: " + fnr + " not found in registry, error: " + (patientIdents?.feilmelding
-                    ?: ""))
-        }
+        val pasientIdent = aktoerIdClient.finnAktoerId(fnr, sykmeldingId)!!
 
         val pasient = Pasient(
             fnr = fnr,
-            aktorId = patientIdents.identer!!.first().ident,
+            aktorId = pasientIdent,
             fornavn = "Fanny",
             mellomnavn = null,
             etternavn = "Storm")

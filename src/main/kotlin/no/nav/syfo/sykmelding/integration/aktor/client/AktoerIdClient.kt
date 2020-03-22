@@ -11,6 +11,8 @@ import io.ktor.http.ContentType
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.client.StsOidcClient
 import no.nav.syfo.helpers.retry
+import no.nav.syfo.log
+import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 
 @KtorExperimentalAPI
@@ -20,7 +22,7 @@ class AktoerIdClient(
     private val httpClient: HttpClient,
     private val serviceUserName: String
 ) {
-    suspend fun getAktoerIds(
+    private suspend fun getAktoerIds(
         personNumbers: List<String>,
         sykmeldingId: String
     ): Map<String, IdentInfoResult> =
@@ -38,4 +40,16 @@ class AktoerIdClient(
                     parameter("identgruppe", "AktoerId")
                 }.call.response.receive<Map<String, IdentInfoResult>>()
             }
+
+    suspend fun finnAktoerId(fnr: String, sykmeldingId: String): String? {
+        val aktoerIds = getAktoerIds(listOf(fnr), sykmeldingId)
+        val patientIdents = aktoerIds[fnr]
+
+        if (patientIdents == null || patientIdents.feilmelding != null) {
+            log.error("Klarte ikke hente aktørIdent for fnr: $fnr og sykmeldingId $sykmeldingId")
+            throw AktoerNotFoundException("Patient with fnr: $fnr not found in registry, error: $patientIdents.feilmelding")
+        } else {
+            return patientIdents.identer?.find { it.gjeldende }?.ident ?: throw AktoerNotFoundException("Patient with fnr: $fnr not found in registry, error: $patientIdents.feilmelding")
+        }
+    }
 }

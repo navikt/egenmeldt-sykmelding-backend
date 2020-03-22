@@ -14,8 +14,6 @@ import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
-import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfo
-import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -32,10 +30,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
-        coEvery { aktoerIdClient.getAktoerIds(any(), any()) } returns mapOf(
-                Pair("12345678910",
-                        IdentInfoResult(listOf(
-                                IdentInfo("12345678910", "identgruppe", true)), null)))
+        coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
     }
 
     describe("EgenmeldtSykmeldingService test") {
