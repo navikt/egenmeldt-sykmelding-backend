@@ -110,6 +110,11 @@ fun opprettFellesformat(
                         any.add(HelseOpplysningerArbeidsuforhet().apply {
                             syketilfelleStartDato = LocalDate.now()
                             pasient = HelseOpplysningerArbeidsuforhet.Pasient().apply {
+                                navn = NavnType().apply {
+                                    fornavn = sykmeldt.fornavn
+                                    mellomnavn = sykmeldt.mellomnavn
+                                    etternavn = sykmeldt.etternavn
+                                }
                                 fodselsnummer = Ident().apply {
                                     id = sykmeldt.fnr
                                     typeId = CV().apply {
