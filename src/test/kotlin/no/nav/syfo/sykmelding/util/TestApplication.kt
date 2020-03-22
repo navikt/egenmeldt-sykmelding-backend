@@ -52,7 +52,8 @@ fun TestApplicationEngine.setUpAuth(): Environment {
             mountPathVault = "",
             databaseName = "",
             registerBasePath = "",
-            aktoerregisterV1Url = ""
+            aktoerregisterV1Url = "",
+            pdlGraphqlPath = ""
     )
 
     val path = "src/test/resources/jwkset.json"

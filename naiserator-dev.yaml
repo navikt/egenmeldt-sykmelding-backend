@@ -66,3 +66,5 @@ spec:
       value: https://modapp-q1.adeo.no
     - name: AKTOR_REGISTER_V1_URL
       value: https://app-q1.adeo.no/aktoerregister/api/v1
+    - name: PDL_GRAPHQL_PATH
+      value: https://pdl-api.nais.preprod.local/graphql

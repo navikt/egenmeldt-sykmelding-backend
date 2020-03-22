@@ -11,6 +11,7 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
 import no.nav.syfo.model.ReceivedSykmelding
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
@@ -29,10 +30,11 @@ import no.nav.syfo.sykmelding.util.toString
 class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val oppdaterTopicsService: OppdaterTopicsService,
     private val aktoerIdClient: AktoerIdClient,
-    private val database: DatabaseInterface
+    private val database: DatabaseInterface,
+    private val pdlPersonService: PdlPersonService
 ) {
 
-    val dummyTssIdent = "80000821845"
+    private val dummyTssIdent = "80000821845"
 
     suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {

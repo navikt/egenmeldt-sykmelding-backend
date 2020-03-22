@@ -19,6 +19,7 @@ import java.time.LocalDate
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
@@ -40,7 +41,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
+    val pdlService = mockk<PdlPersonService>()
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService)
 
     beforeEachTest {
         clearAllMocks()
@@ -53,7 +55,6 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
             val applicationState = ApplicationState(alive = true, ready = true)
 
             application.routing {
@@ -109,7 +110,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService)
 
             application.routing {
                 authenticate {
