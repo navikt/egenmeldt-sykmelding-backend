@@ -4,7 +4,7 @@ import java.util.UUID
 
 data class EgenmeldtSykmelding(
     val id: UUID,
-    val fodselsnummer: String,
+    val fnr: String,
     val arbeidsforhold: Arbeidsforhold?,
     val periode: Periode
 )

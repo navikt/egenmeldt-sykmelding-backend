@@ -1,5 +1,6 @@
 package no.nav.syfo.sykmelding.service
 
+import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDateTime
 import java.util.UUID
 import javax.xml.bind.JAXBContext
@@ -15,6 +16,7 @@ import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
@@ -24,25 +26,32 @@ import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
 
-class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopicsService, private val database: DatabaseInterface, pdlPersonService: PdlPersonService) {
-    val dummyTssIdent = "80000821845"
+@KtorExperimentalAPI
+class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
+    private val oppdaterTopicsService: OppdaterTopicsService,
+    private val aktoerIdClient: AktoerIdClient,
+    private val database: DatabaseInterface,
+    private val pdlPersonService: PdlPersonService
+) {
 
-    fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
+    private val dummyTssIdent = "80000821845"
+
+    suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String) {
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
             log.info("Registrerer sykmelding uten arbeidsforhold")
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), fnr)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode))
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
                 EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
             }
             log.info("Oppretter {} sykmeldinger", list.size)
             for (egenmeldtSykmelding in list) {
-                registrerEgenmeldtSykmelding(egenmeldtSykmelding, fnr)
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding)
             }
         }
     }
 
-    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, fnr: String) {
+    private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
         log.info("Mottatt sykmelding med id {}", egenmeldtSykmelding.id)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
@@ -57,16 +66,21 @@ class EgenmeldtSykmeldingService(private val oppdaterTopicsService: OppdaterTopi
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(fnr = fnr, sykmeldingId = egenmeldtSykmelding.id.toString()))
+        oppdaterTopicsService.oppdaterOKTopic(opprettReceivedSykmelding(egenmeldtSykmelding))
     }
 
-    fun opprettReceivedSykmelding(fnr: String, sykmeldingId: String): ReceivedSykmelding {
+    suspend fun opprettReceivedSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding): ReceivedSykmelding {
         val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
             .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
 
+        val fnr = egenmeldtSykmelding.fnr
+        val sykmeldingId = egenmeldtSykmelding.id.toString()
+
+        val pasientIdent = aktoerIdClient.finnAktoerId(fnr, sykmeldingId)!!
+
         val pasient = Pasient(
             fnr = fnr,
-            aktorId = "1826914851343",
+            aktorId = pasientIdent,
             fornavn = "Fanny",
             mellomnavn = null,
             etternavn = "Storm")

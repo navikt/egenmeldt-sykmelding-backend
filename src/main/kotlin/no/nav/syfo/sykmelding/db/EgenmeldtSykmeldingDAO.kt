@@ -29,7 +29,7 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
 
         connection.prepareStatement(insertQuery).use {
             it.setObject(i++, egenmeldtSykmelding.id)
-            it.setString(i++, egenmeldtSykmelding.fodselsnummer)
+            it.setString(i++, egenmeldtSykmelding.fnr)
             it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.fom))
             it.setDate(i++, Date.valueOf(egenmeldtSykmelding.periode.tom))
             it.setObject(i++, PGobject().also {
@@ -55,7 +55,7 @@ fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmeld
 
         connection.prepareStatement(query).use {
             var i = 1
-            it.setString(i++, egenmeldtSykmelding.fodselsnummer)
+            it.setString(i++, egenmeldtSykmelding.fnr)
             it.setString(i++, egenmeldtSykmelding.arbeidsforhold?.orgNummer)
             val executeQuery = it.executeQuery()
             if (executeQuery.next()) {
@@ -100,7 +100,7 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(pasientfnr: String): EgenmeldtSykm
 fun ResultSet.tilEgenmeldtSykmelding(): EgenmeldtSykmelding {
     return EgenmeldtSykmelding(
             id = getObject("id") as UUID,
-            fodselsnummer = getString("pasientfnr"),
+            fnr = getString("pasientfnr"),
             arbeidsforhold = jacksonObjectMapper().readValue(getString("arbeidsforhold")),
             periode = Periode(
                     getDate("fom").toLocalDate(),

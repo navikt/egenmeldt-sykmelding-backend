@@ -22,6 +22,7 @@ data class Environment(
     val databaseName: String = getEnvVar("DATABASE_NAME", "egenmeldt-sykmelding-backend"),
     val registerBasePath: String = getEnvVar("REGISTER_BASE_PATH"),
     val sm2013AutomaticHandlingTopic: String = getEnvVar("KAFKA_SM2013_AUTOMATIC_TOPIC", "privat-syfo-sm2013-automatiskBehandling"),
+    val aktoerregisterV1Url: String = getEnvVar("AKTOR_REGISTER_V1_URL"),
     val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH")
 ) : MqConfig, KafkaConfig
 
