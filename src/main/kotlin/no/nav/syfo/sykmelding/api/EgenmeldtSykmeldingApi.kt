@@ -9,9 +9,9 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
+import io.ktor.util.KtorExperimentalAPI
 import javax.jms.MessageProducer
 import javax.jms.Session
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 
