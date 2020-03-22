@@ -12,7 +12,6 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
     companion object {
         const val STRENGT_FORTROLIG_UTLAND = "STRENGT_FORTROLIG_UTLAND"
         const val STRENGT_FORTROLIG = "STRENGT_FORTROLIG"
-        const val FORTROLIG = "FORTROLIG"
         private val log = LoggerFactory.getLogger(PdlPersonService::class.java)
     }
     suspend fun getPersonOgDiskresjonskode(fnr: String, userToken: String): PdlPerson {
@@ -37,7 +36,6 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
         return when (adressebeskyttelse.gradering) {
             STRENGT_FORTROLIG_UTLAND -> true
             STRENGT_FORTROLIG -> true
-            FORTROLIG -> true
             else -> false
         }
     }

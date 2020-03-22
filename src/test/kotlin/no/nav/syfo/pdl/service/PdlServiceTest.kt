@@ -13,7 +13,6 @@ import no.nav.syfo.pdl.client.model.HentPerson
 import no.nav.syfo.pdl.client.model.Navn
 import no.nav.syfo.pdl.client.model.ResponseData
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
-import no.nav.syfo.pdl.service.PdlPersonService.Companion.FORTROLIG
 import no.nav.syfo.pdl.service.PdlPersonService.Companion.STRENGT_FORTROLIG
 import no.nav.syfo.pdl.service.PdlPersonService.Companion.STRENGT_FORTROLIG_UTLAND
 import org.amshove.kluent.shouldEqual
@@ -37,10 +36,10 @@ class PdlServiceTest : Spek({
             }
         }
         it("hente person fra pdl fortrolig dresse") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(FORTROLIG)
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse("FORTROLIG")
             runBlocking {
                 val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token")
-                person.fortroligAdresse shouldEqual true
+                person.fortroligAdresse shouldEqual false
             }
         }
         it("hente person fra pdl strengt fortrolig dresse") {
