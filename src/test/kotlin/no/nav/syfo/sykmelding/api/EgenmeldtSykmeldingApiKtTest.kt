@@ -14,6 +14,8 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
 import java.time.LocalDate
+import javax.jms.MessageProducer
+import javax.jms.Session
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
@@ -24,6 +26,7 @@ import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
+import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth
@@ -35,10 +38,14 @@ import org.spekframework.spek2.style.specification.describe
 class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
+    val session = mockk<Session>()
+    val syfoserviceProducer = mockk<MessageProducer>()
+    val syfoserviceService = mockk<SyfoserviceService>()
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
+        every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
@@ -46,13 +53,13 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, syfoserviceService)
             val applicationState = ApplicationState(alive = true, ready = true)
 
             application.routing {
                 registerNaisApi(applicationState)
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
                 }
             }
 
@@ -102,10 +109,10 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, syfoserviceService)
             application.routing {
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
                 }
             }
 

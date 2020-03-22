@@ -22,6 +22,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import java.util.UUID
+import javax.jms.MessageProducer
+import javax.jms.Session
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
@@ -37,6 +39,7 @@ import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
 import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
+import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import org.apache.kafka.clients.producer.KafkaProducer
 
 @KtorExperimentalAPI
@@ -47,6 +50,8 @@ fun createApplicationEngine(
     jwkProvider: JwkProvider,
     issuer: String,
     arbeidsgiverService: ArbeidsgiverService,
+    session: Session,
+    syfoserviceProducer: MessageProducer,
     kafkaProducerReceivedSykmelding: KafkaProducer<String, ReceivedSykmelding>
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
@@ -74,14 +79,15 @@ fun createApplicationEngine(
             }
         }
         val oppdaterTopicsService = OppdaterTopicsService(kafkaProducerReceivedSykmelding = kafkaProducerReceivedSykmelding, sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic)
-        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, Database(env, VaultCredentialService()))
+        val syfoserviceService = SyfoserviceService()
+        val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, Database(env, VaultCredentialService()), syfoserviceService)
 
         routing {
             registerNaisApi(applicationState)
             if (env.cluster == "dev-fss") {
                 setupSwaggerDocApi()
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
                     registrerArbeidsgiverApi(arbeidsgiverService)
                 }
             }
