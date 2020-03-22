@@ -64,3 +64,5 @@ spec:
       value: /postgresql/prod-fss
     - name: REGISTER_BASE_PATH
       value: https://modapp.adeo.no
+    - name: AKTOR_REGISTER_V1_URL
+      value: https://app.adeo.no/aktoerregister/api/v1

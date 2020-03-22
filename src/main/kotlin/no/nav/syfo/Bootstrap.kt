@@ -22,6 +22,11 @@ import no.nav.syfo.arbeidsgivere.integration.arbeidsforhold.client.Arbeidsforhol
 import no.nav.syfo.arbeidsgivere.integration.organisasjon.client.OrganisasjonsinfoClient
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
+import no.nav.syfo.db.Database
+import no.nav.syfo.db.VaultCredentialService
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
+import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
+import no.nav.syfo.sykmelding.service.OppdaterTopicsService
 import no.nav.syfo.sykmelding.util.KafkaClients
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -64,7 +69,16 @@ fun main() {
 
     val arbeidsforholdClient = ArbeidsforholdClient(httpClient, env.registerBasePath)
     val organisasjonsinfoClient = OrganisasjonsinfoClient(httpClient, env.registerBasePath)
+
     val arbeidsgiverService = ArbeidsgiverService(arbeidsforholdClient, organisasjonsinfoClient, stsOidcClient)
+    val oppdaterTopicsService = OppdaterTopicsService(
+            kafkaProducerReceivedSykmelding = kafkaClients.kafkaProducerReceivedSykmelding,
+            sm2013AutomaticHandlingTopic = env.sm2013AutomaticHandlingTopic)
+
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(
+            oppdaterTopicsService,
+            AktoerIdClient(env.aktoerregisterV1Url, StsOidcClient(vaultSecrets.serviceuserUsername, vaultSecrets.serviceuserPassword), httpClient, vaultSecrets.serviceuserUsername),
+            Database(env, VaultCredentialService()))
 
     val applicationEngine = createApplicationEngine(
             env,
@@ -73,7 +87,7 @@ fun main() {
             jwkProvider,
             wellKnown.issuer,
             arbeidsgiverService,
-            kafkaClients.kafkaProducerReceivedSykmelding
+            egenmeldtSykmeldingService
     )
 
     val applicationServer = ApplicationServer(applicationEngine, applicationState)

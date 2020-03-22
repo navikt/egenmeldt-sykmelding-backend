@@ -7,8 +7,10 @@ import io.ktor.routing.routing
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
+import io.ktor.util.KtorExperimentalAPI
 import io.mockk.Runs
 import io.mockk.clearAllMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -19,6 +21,7 @@ import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
+import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -32,13 +35,17 @@ import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
+@KtorExperimentalAPI
 class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
+    val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
+        coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
@@ -46,7 +53,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
             val applicationState = ApplicationState(alive = true, ready = true)
 
             application.routing {
@@ -67,9 +74,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
-                        "loginservice",
-                        subject = "12345678901",
-                        issuer = "issuer")}")
+                            "loginservice",
+                            subject = "12345678910",
+                            issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
                 }
@@ -86,9 +93,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
-                        "loginservice",
-                        subject = "12345678901",
-                        issuer = "issuer")}")
+                            "loginservice",
+                            subject = "12345678910",
+                            issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
                     getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
@@ -102,7 +109,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database)
+            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database)
+
             application.routing {
                 authenticate {
                     registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
@@ -120,7 +128,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
                             "loginservice",
-                            subject = "12345678901",
+                            subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Created
@@ -137,7 +145,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     addHeader("Content-Type", "application/json")
                     addHeader("Authorization", "Bearer ${generateJWT("client",
                             "loginservice2",
-                            subject = "12345678901",
+                            subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Unauthorized
