@@ -81,7 +81,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             fornavn = "Fanny",
             mellomnavn = null,
             etternavn = "Storm")
-        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString())
+        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fom = fom, tom = tom)
         val receivedSykmelding = opprettReceivedSykmelding(pasient = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fellesformat = fellesformat)
 
         oppdaterTopicsService.oppdaterOKTopic(receivedSykmelding)

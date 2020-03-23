@@ -28,7 +28,9 @@ import no.nav.syfo.sykmelding.model.Pasient
 
 fun opprettFellesformat(
     sykmeldt: Pasient,
-    sykmeldingId: String
+    sykmeldingId: String,
+    fom: LocalDate,
+    tom: LocalDate
 ): XMLEIFellesformat {
     log.info("Mapper sykmelding med id {} til XML-format", sykmeldingId)
     return XMLEIFellesformat().apply {
@@ -129,7 +131,7 @@ fun opprettFellesformat(
                             arbeidsgiver = tilArbeidsgiver()
                             medisinskVurdering = tilMedisinskVurdering()
                             aktivitet = HelseOpplysningerArbeidsuforhet.Aktivitet().apply {
-                                periode.addAll(tilPeriodeListe())
+                                periode.addAll(tilPeriodeListe(fom = fom, tom = tom))
                             }
                             prognose = null
                             utdypendeOpplysninger = null
@@ -191,11 +193,11 @@ fun tilBehandler(sykmeldt: Pasient): HelseOpplysningerArbeidsuforhet.Behandler =
         })
     }
 
-fun tilPeriodeListe(): List<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode> {
+fun tilPeriodeListe(fom: LocalDate, tom: LocalDate): List<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode> {
     val periodeListe = ArrayList<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode>()
     periodeListe.add(HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-        periodeFOMDato = LocalDate.now()
-        periodeTOMDato = LocalDate.now().plusDays(10)
+        periodeFOMDato = fom
+        periodeTOMDato = tom
         aktivitetIkkeMulig = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AktivitetIkkeMulig().apply {
             medisinskeArsaker = ArsakType().apply {
                 beskriv = "Har korona"
