@@ -11,7 +11,7 @@ val HTTP_HISTOGRAM: Histogram = Histogram.Builder()
     .help("http requests durations for incoming requests in seconds")
     .register()
 
-val EGENMELDT_SYKMELDING_REQ_V1_COUNTER: Counter = Counter.build()
+val EGENMELDT_SYKMELDING_REQ_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_req_count")
         .help("Number of requests to sykmelding/egenmeldt")
