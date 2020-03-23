@@ -15,7 +15,6 @@ import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER
-import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_REQ_COUNTER
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
@@ -58,7 +57,6 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             }
         }
 
-        EGENMELDT_SYKMELDING_REQ_COUNTER.inc()
     }
 
     private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer) {

@@ -17,12 +17,6 @@ val EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER: Counter = Counter.build()
         .help("Number of http requests to sykmelding/egenmeldt")
         .register()
 
-val EGENMELDT_SYKMELDING_REQ_COUNTER: Counter = Counter.build()
-        .namespace(METRICS_NS)
-        .name("egenmeldt_sykmelding_req_count")
-        .help("Number of egenmeldt sykmelding requests registered")
-        .register()
-
 val EGENMELDT_SYKMELDING_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_count")
