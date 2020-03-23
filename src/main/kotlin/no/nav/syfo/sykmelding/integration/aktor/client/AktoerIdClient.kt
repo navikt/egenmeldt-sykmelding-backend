@@ -12,6 +12,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.syfo.client.StsOidcClient
 import no.nav.syfo.helpers.retry
 import no.nav.syfo.log
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_FAILED_COUNTER
 import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.integration.aktor.model.IdentInfoResult
 
@@ -46,6 +47,7 @@ class AktoerIdClient(
         val patientIdents = aktoerIds[fnr]
 
         if (patientIdents == null || patientIdents.feilmelding != null) {
+            EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
             log.error("Klarte ikke hente aktørIdent for fnr: $fnr og sykmeldingId $sykmeldingId")
             throw AktoerNotFoundException("Patient with fnr: $fnr not found in registry, error: $patientIdents.feilmelding")
         } else {

@@ -12,6 +12,9 @@ import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_FAILED_COUNTER
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_PERMUTED_COUNTER
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
@@ -53,6 +56,8 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
                 registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer)
             }
         }
+
+        EGENMELDT_SYKMELDING_COUNTER.inc()
     }
 
     private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer) {
@@ -60,11 +65,13 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
         if (tom.isBefore(fom)) {
+            EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
             log.warn("Tom-dato er før fom-dato for sykmeldingid {}", egenmeldtSykmelding.id)
             throw TomBeforeFomDateException("Tom date is before Fom date")
         }
 
         if (database.sykmeldingOverlapper(egenmeldtSykmelding)) {
+            EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
             log.error("Det finnes en sykmelding fra før for samme arbeidsgiver og samme bruker, {}", egenmeldtSykmelding.id)
             throw SykmeldingAlreadyExistsException("A sykmelding with the same arbeidsgiver already exists for the given fødselsnummer")
         }
@@ -83,6 +90,8 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             etternavn = "Storm")
         val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString())
         val receivedSykmelding = opprettReceivedSykmelding(pasient = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fellesformat = fellesformat)
+
+        EGENMELDT_SYKMELDING_PERMUTED_COUNTER.inc()
 
         oppdaterTopicsService.oppdaterOKTopic(receivedSykmelding)
         syfoserviceService.sendTilSyfoservice(session, syfoserviceProducer, egenmeldtSykmelding.id.toString(), extractHelseOpplysningerArbeidsuforhet(fellesformat))
