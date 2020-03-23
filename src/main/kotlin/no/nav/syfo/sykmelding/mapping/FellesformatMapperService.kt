@@ -21,6 +21,8 @@ import no.nav.helse.sm2013.CV
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.helse.sm2013.Ident
 import no.nav.helse.sm2013.NavnType
+import no.nav.helse.sm2013.TeleCom
+import no.nav.helse.sm2013.URL
 import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.Pasient
 
@@ -110,6 +112,11 @@ fun opprettFellesformat(
                         any.add(HelseOpplysningerArbeidsuforhet().apply {
                             syketilfelleStartDato = LocalDate.now()
                             pasient = HelseOpplysningerArbeidsuforhet.Pasient().apply {
+                                navn = NavnType().apply {
+                                    fornavn = sykmeldt.fornavn
+                                    mellomnavn = sykmeldt.mellomnavn
+                                    etternavn = sykmeldt.etternavn
+                                }
                                 fodselsnummer = Ident().apply {
                                     id = sykmeldt.fnr
                                     typeId = CV().apply {
@@ -139,6 +146,7 @@ fun opprettFellesformat(
                                 systemNavn = "Egenmeldt"
                                 systemVersjon = "1"
                             }
+                            strekkode = "123456789qwerty"
                         })
                     }
                 }
@@ -172,6 +180,15 @@ fun tilBehandler(sykmeldt: Pasient): HelseOpplysningerArbeidsuforhet.Behandler =
                 }
             }))
         adresse = Address()
+        kontaktInfo.add(TeleCom().apply {
+            typeTelecom = CS().apply {
+                v = "HP"
+                dn = "Hovedtelefon"
+            }
+            teleAddress = URL().apply {
+                v = "tel:55553336"
+            }
+        })
     }
 
 fun tilPeriodeListe(): List<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode> {
