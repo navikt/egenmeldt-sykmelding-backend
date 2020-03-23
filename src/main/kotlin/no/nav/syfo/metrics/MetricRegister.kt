@@ -2,6 +2,7 @@ package no.nav.syfo.metrics
 
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
+import kotlin.time.measureTime
 
 const val METRICS_NS = "egenmeldtsmbackend"
 
@@ -11,26 +12,36 @@ val HTTP_HISTOGRAM: Histogram = Histogram.Builder()
     .help("http requests durations for incoming requests in seconds")
     .register()
 
+val EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER: Counter = Counter.build()
+        .namespace(METRICS_NS)
+        .name("egenmeldt_sykmelding_http_req_count")
+        .help("Number of http requests to sykmelding/egenmeldt")
+        .register()
+
 val EGENMELDT_SYKMELDING_REQ_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_req_count")
-        .help("Number of requests to sykmelding/egenmeldt")
+        .help("Number of egenmeldt sykmelding requests registered")
         .register()
 
 val EGENMELDT_SYKMELDING_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_count")
-        .help("Number of egenmeldt sykmelding registered")
-        .register()
-
-val EGENMELDT_SYKMELDING_PERMUTED_COUNTER: Counter = Counter.build()
-        .namespace(METRICS_NS)
-        .name("egenmeldt_sykmelding_permuted_count")
-        .help("Number of egenmeldt sykmelding registered incl. permutations for each arbeidsgiver")
+        .help("Total number of egenmeldt sykmelding registered")
         .register()
 
 val EGENMELDT_SYKMELDING_FAILED_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_failed_count")
         .help("Number of failed egenmeldt sykmelding requests")
+        .register()
+
+val EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER: Counter = Counter.build()
+        .namespace(METRICS_NS)
+        .name("egenmeldt_sykmelding_error_tom_before_fom_counter")
+        .register()
+
+val EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER: Counter = Counter.build()
+        .namespace(METRICS_NS)
+        .name("egenmeldt_sykmelding_already_exists_counter")
         .register()
