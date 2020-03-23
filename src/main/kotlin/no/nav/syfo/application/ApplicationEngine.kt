@@ -31,6 +31,7 @@ import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.arbeidsgivere.api.registrerArbeidsgiverApi
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.log
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_FAILED_COUNTER
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
 import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
@@ -68,8 +69,9 @@ fun createApplicationEngine(
         install(StatusPages) {
             setUpSykmeldingExceptionHandler()
             exception<Throwable> { cause ->
-                call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
                 log.error("Caught exception", cause)
+                EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
+                call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
             }
         }
 

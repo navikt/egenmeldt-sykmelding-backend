@@ -13,7 +13,6 @@ import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
-import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_FAILED_COUNTER
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_PERMUTED_COUNTER
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.pdl.service.PdlPersonService
@@ -65,13 +64,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
         if (tom.isBefore(fom)) {
-            EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
             log.warn("Tom-dato er før fom-dato for sykmeldingid {}", egenmeldtSykmelding.id)
             throw TomBeforeFomDateException("Tom date is before Fom date")
         }
 
         if (database.sykmeldingOverlapper(egenmeldtSykmelding)) {
-            EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
             log.error("Det finnes en sykmelding fra før for samme arbeidsgiver og samme bruker, {}", egenmeldtSykmelding.id)
             throw SykmeldingAlreadyExistsException("A sykmelding with the same arbeidsgiver already exists for the given fødselsnummer")
         }
