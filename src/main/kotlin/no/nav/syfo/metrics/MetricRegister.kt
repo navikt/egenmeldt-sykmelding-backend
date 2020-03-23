@@ -2,7 +2,6 @@ package no.nav.syfo.metrics
 
 import io.prometheus.client.Counter
 import io.prometheus.client.Histogram
-import kotlin.time.measureTime
 
 const val METRICS_NS = "egenmeldtsmbackend"
 
@@ -39,9 +38,11 @@ val EGENMELDT_SYKMELDING_FAILED_COUNTER: Counter = Counter.build()
 val EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_error_tom_before_fom_counter")
+        .help("Number of TOM BEFORE FOM errors")
         .register()
 
 val EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER: Counter = Counter.build()
         .namespace(METRICS_NS)
         .name("egenmeldt_sykmelding_already_exists_counter")
+        .help("Number of sykmelding already exists errors   ")
         .register()
