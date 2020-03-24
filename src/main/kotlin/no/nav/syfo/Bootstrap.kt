@@ -29,6 +29,7 @@ import no.nav.syfo.mq.connectionFactory
 import no.nav.syfo.mq.producerForQueue
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
@@ -92,6 +93,7 @@ fun main() {
             PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText())
 
     val pdlService = PdlPersonService(pdlClient, stsOidcClient)
+    val syfosmregisterSykmeldingClient = SyfosmregisterSykmeldingClient(httpClient, env.syfosmregisterUrl)
     val syfoserviceService = SyfoserviceService()
 
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(
@@ -99,7 +101,8 @@ fun main() {
             AktoerIdClient(env.aktoerregisterV1Url, StsOidcClient(vaultSecrets.serviceuserUsername, vaultSecrets.serviceuserPassword), httpClient, vaultSecrets.serviceuserUsername),
             Database(env, VaultCredentialService()),
             pdlService,
-            syfoserviceService)
+            syfoserviceService,
+            syfosmregisterSykmeldingClient)
 
     val applicationEngine = createApplicationEngine(
             env,

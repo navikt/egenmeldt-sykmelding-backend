@@ -22,6 +22,7 @@ import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
@@ -48,7 +49,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
     val syfoserviceProducer = mockk<MessageProducer>()
     val syfoserviceService = mockk<SyfoserviceService>()
     val pdlService = mockk<PdlPersonService>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService)
+    val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService, syfosmregisterClient)
 
     beforeEachTest {
         clearAllMocks()
@@ -117,7 +119,6 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             start()
             setUpTestApplication()
             setUpAuth()
-            val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService)
 
             application.routing {
                 authenticate {

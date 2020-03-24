@@ -15,6 +15,7 @@ import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
@@ -33,7 +34,8 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     val syfoserviceProducer = mockk<MessageProducer>()
     val syfoserviceService = mockk<SyfoserviceService>()
     val pdlService = mockk<PdlPersonService>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService)
+    val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService, syfosmregisterClient)
 
     beforeEachTest {
         clearAllMocks()

@@ -17,6 +17,7 @@ import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
@@ -38,7 +39,8 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val aktoerIdClient: AktoerIdClient,
     private val database: DatabaseInterface,
     private val pdlPersonService: PdlPersonService,
-    private val syfoserviceService: SyfoserviceService
+    private val syfoserviceService: SyfoserviceService,
+    private val syfosmregisterSykmeldingClient: SyfosmregisterSykmeldingClient
 ) {
 
     private val dummyTssIdent = "80000821845"
@@ -56,7 +58,6 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
                 registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer)
             }
         }
-
     }
 
     private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer) {
