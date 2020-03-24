@@ -90,7 +90,7 @@ fun main() {
 
     val pdlClient = PdlClient(httpClient,
             env.pdlGraphqlPath,
-            PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText())
+            PdlClient::class.java.getResource("/graphql/getPerson.graphql").readText().replace(Regex("[\n\t]"), ""))
 
     val pdlService = PdlPersonService(pdlClient, stsOidcClient)
     val syfosmregisterSykmeldingClient = SyfosmregisterSykmeldingClient(httpClient, env.syfosmregisterUrl)
