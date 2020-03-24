@@ -14,7 +14,10 @@ import javax.jms.Session
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.pdl.model.Navn
+import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
@@ -26,6 +29,8 @@ import org.spekframework.spek2.style.specification.describe
 
 @KtorExperimentalAPI
 class EgenmeldtSykmeldingServiceTest : Spek({
+    val usertoken = "token"
+    val callId = "callId"
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
@@ -34,12 +39,14 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     val syfoserviceService = mockk<SyfoserviceService>()
     val pdlService = mockk<PdlPersonService>()
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService)
+    val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false)
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
         coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
+        coEvery { pdlService.getPersonOgDiskresjonskode(any(), any()) } returns person
     }
 
     describe("EgenmeldtSykmeldingService test") {
@@ -50,7 +57,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                 fom = LocalDate.now(),
                                 tom = LocalDate.now().plusDays(1)),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer)
+                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
             }
         }
         it("Should throw exception when tom is before form") {
@@ -62,7 +69,21 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                     tom = LocalDate.now().minusDays(1)
                             ),
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer)
+                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                }
+            }
+        }
+        it("Bruker med fortrolig adresse skal ikke få tilgang") {
+            coEvery { pdlService.getPersonOgDiskresjonskode(any(), any()) } returns person.copy(fortroligAdresse = true)
+            runBlocking {
+                assertFailsWith<IkkeTilgangException>() {
+                    val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                        Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().minusDays(1)
+                        ),
+                        listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
                 }
             }
         }

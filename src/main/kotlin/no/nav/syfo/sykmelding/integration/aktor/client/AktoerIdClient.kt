@@ -24,7 +24,7 @@ class AktoerIdClient(
 ) {
     private suspend fun getAktoerIds(
         personNumbers: List<String>,
-        sykmeldingId: String
+        msgId: String
     ): Map<String, IdentInfoResult> =
             retry("get_aktoerids") {
                 httpClient.get<HttpResponse>("$endpointUrl/identer") {
@@ -33,7 +33,7 @@ class AktoerIdClient(
                     headers {
                         append("Authorization", "Bearer ${oidcToken.access_token}")
                         append("Nav-Consumer-Id", serviceUserName)
-                        append("Nav-Call-Id", sykmeldingId)
+                        append("Nav-Call-Id", msgId)
                         append("Nav-Personidenter", personNumbers.joinToString(","))
                     }
                     parameter("gjeldende", "true")
@@ -41,12 +41,12 @@ class AktoerIdClient(
                 }.call.response.receive<Map<String, IdentInfoResult>>()
             }
 
-    suspend fun finnAktoerId(fnr: String, sykmeldingId: String): String? {
-        val aktoerIds = getAktoerIds(listOf(fnr), sykmeldingId)
+    suspend fun finnAktoerId(fnr: String, msgId: String): String {
+        val aktoerIds = getAktoerIds(listOf(fnr), msgId)
         val patientIdents = aktoerIds[fnr]
 
         if (patientIdents == null || patientIdents.feilmelding != null) {
-            log.error("Klarte ikke hente aktørIdent for fnr: $fnr og sykmeldingId $sykmeldingId")
+            log.error("Klarte ikke hente aktørIdent for fnr: $fnr og msgId $msgId")
             throw AktoerNotFoundException("Patient with fnr: $fnr not found in registry, error: $patientIdents.feilmelding")
         } else {
             return patientIdents.identer?.find { it.gjeldende }?.ident ?: throw AktoerNotFoundException("Patient with fnr: $fnr not found in registry, error: $patientIdents.feilmelding")
