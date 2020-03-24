@@ -23,10 +23,10 @@ class PdlClient(
         val getPersonRequest = GetPersonRequest(query = graphQlQuery, variables = GetPersonVeriables(ident = fnr))
         return httpClient.post(basePath) {
             body = objectMapper.writeValueAsString(getPersonRequest)
-            header(HttpHeaders.Authorization, stsToken)
+            header(HttpHeaders.Authorization, token)
             header(temaHeader, tema)
             header(HttpHeaders.ContentType, "application/json")
-            header(navConsumerToken, "Bearer $token")
+            header(navConsumerToken, "Bearer $stsToken")
         }
     }
 }
