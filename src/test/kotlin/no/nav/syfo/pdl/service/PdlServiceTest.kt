@@ -10,11 +10,14 @@ import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.client.model.Adressebeskyttelse
 import no.nav.syfo.pdl.client.model.GetPersonResponse
 import no.nav.syfo.pdl.client.model.HentPerson
+import no.nav.syfo.pdl.client.model.IdentInformasjon
+import no.nav.syfo.pdl.client.model.Identliste
 import no.nav.syfo.pdl.client.model.Navn
 import no.nav.syfo.pdl.client.model.ResponseData
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
 import no.nav.syfo.pdl.service.PdlPersonService.Companion.STRENGT_FORTROLIG
 import no.nav.syfo.pdl.service.PdlPersonService.Companion.STRENGT_FORTROLIG_UTLAND
+import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -33,6 +36,7 @@ class PdlServiceTest : Spek({
                 person.navn.fornavn shouldEqual "fornavn"
                 person.navn.mellomnavn shouldEqual null
                 person.navn.etternavn shouldEqual "etternavn"
+                person.aktorId shouldEqual "987654321"
             }
         }
         it("hente person fra pdl fortrolig dresse") {
@@ -58,7 +62,7 @@ class PdlServiceTest : Spek({
         }
 
         it("Skal feile når person ikke finnes") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(null))
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(null, null))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
                     pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
@@ -68,10 +72,12 @@ class PdlServiceTest : Spek({
         }
 
         it("Skal feile når navn er tom liste") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(HentPerson(
-                    navn = emptyList(),
-                    adressebeskyttelse = listOf(Adressebeskyttelse("UGRADERT"))
-            )))
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(hentPerson = HentPerson(
+                navn = emptyList(),
+                adressebeskyttelse = listOf(Adressebeskyttelse("UGRADERT"))
+            ),
+                hentIdenter = Identliste(emptyList())
+            ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
                     pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
@@ -80,10 +86,12 @@ class PdlServiceTest : Spek({
             exception.message shouldEqual "Fant ikke navn på person i PDL"
         }
         it("Skal feile når navn ikke finnes") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(HentPerson(
-                    navn = null,
-                    adressebeskyttelse = listOf(Adressebeskyttelse("UGRADERT"))
-            )))
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(hentPerson = HentPerson(
+                navn = null,
+                adressebeskyttelse = listOf(Adressebeskyttelse("UGRADERT"))
+            ),
+                hentIdenter = Identliste(listOf(IdentInformasjon(ident = "987654321")))
+            ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
                     pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
@@ -93,9 +101,11 @@ class PdlServiceTest : Spek({
         }
 
         it("Skal feile når gradering ikke finnes") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(HentPerson(
-                    navn = listOf(Navn("fornavn", "mellomnavn", "etternanv")),
-                    adressebeskyttelse = emptyList())
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(hentPerson = HentPerson(
+                navn = listOf(Navn("fornavn", "mellomnavn", "etternavn")),
+                adressebeskyttelse = emptyList()
+            ),
+                hentIdenter = Identliste(listOf(IdentInformasjon(ident = "987654321")))
             ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
@@ -103,6 +113,21 @@ class PdlServiceTest : Spek({
                 }
             }
             exception.message shouldEqual "Fant ikke diskresjonskode i PDL"
+        }
+
+        it("Skal feile når aktørid ikke finnes") {
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(hentPerson = HentPerson(
+                navn = listOf(Navn("fornavn", "mellomnavn", "etternavn")),
+                adressebeskyttelse = listOf(Adressebeskyttelse("UGRADERT"))
+            ),
+                hentIdenter = Identliste(emptyList())
+            ))
+            val exception = assertFailsWith<AktoerNotFoundException> {
+                runBlocking {
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                }
+            }
+            exception.message shouldEqual "Fant ikke aktørId i PDL"
         }
     }
 })

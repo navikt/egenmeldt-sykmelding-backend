@@ -6,6 +6,7 @@ import no.nav.syfo.pdl.client.model.Adressebeskyttelse
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
 import no.nav.syfo.pdl.model.Navn
 import no.nav.syfo.pdl.model.PdlPerson
+import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import org.slf4j.LoggerFactory
 
 class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsOidcClient) {
@@ -29,7 +30,11 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
             log.error("Fant ikke diskresjonskode i PDL")
             throw PersonNotFoundInPdl("Fant ikke diskresjonskode i PDL")
         }
-        return PdlPerson(getNavn(pdlResponse.data.hentPerson.navn[0]), hasFortroligAdresse(pdlResponse.data.hentPerson.adressebeskyttelse[0]))
+        if (pdlResponse.data.hentIdenter == null || pdlResponse.data.hentIdenter.identer.isNullOrEmpty()) {
+            log.error("Fant ikke aktørid i PDL")
+            throw AktoerNotFoundException("Fant ikke aktørId i PDL")
+        }
+        return PdlPerson(getNavn(pdlResponse.data.hentPerson.navn[0]), hasFortroligAdresse(pdlResponse.data.hentPerson.adressebeskyttelse[0]), pdlResponse.data.hentIdenter.identer.first().ident)
     }
 
     private fun hasFortroligAdresse(adressebeskyttelse: Adressebeskyttelse): Boolean {

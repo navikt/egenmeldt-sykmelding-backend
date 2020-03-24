@@ -5,6 +5,7 @@ data class GetPersonResponse(
 )
 
 data class ResponseData(
+    val hentIdenter: Identliste?,
     val hentPerson: HentPerson?
 )
 
@@ -21,4 +22,12 @@ data class Navn(
     val fornavn: String,
     val mellomnavn: String?,
     val etternavn: String
+)
+
+data class Identliste(
+    val identer: List<IdentInformasjon>
+)
+
+data class IdentInformasjon(
+    val ident: String
 )

@@ -3,6 +3,13 @@ package no.nav.syfo.pdl.client
 fun getUgradertTestData(): String {
     return "{\n" +
             "  \"data\": {\n" +
+            "    \"hentIdenter\": {\n" +
+            "      \"identer\": [\n" +
+            "        {\n" +
+            "          \"ident\": \"987654321\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
             "    \"hentPerson\": {\n" +
             "      \"navn\": [\n" +
             "        {\n" +
@@ -24,6 +31,13 @@ fun getUgradertTestData(): String {
 fun getStrengtFortroligTestData(): String {
     return "{\n" +
             "  \"data\": {\n" +
+            "    \"hentIdenter\": {\n" +
+            "      \"identer\": [\n" +
+            "        {\n" +
+            "          \"ident\": \"987654321\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    },\n" +
             "    \"hentPerson\": {\n" +
             "      \"navn\": [\n" +
             "        {\n" +

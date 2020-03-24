@@ -47,7 +47,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val dummyTssIdent = "80000821845"
 
     suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, session: Session, syfoserviceProducer: MessageProducer, userToken: String, callId: String) {
-        val aktorId = aktoerIdClient.finnAktoerId(fnr, callId)
+        // val aktorId = aktoerIdClient.finnAktoerId(fnr, callId)
         val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken)
 
         if (person.fortroligAdresse) {
@@ -56,7 +56,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         val pasient = Pasient(
             fnr = fnr,
-            aktorId = aktorId,
+            aktorId = person.aktorId,
             fornavn = person.navn.fornavn,
             mellomnavn = person.navn.mellomnavn,
             etternavn = person.navn.etternavn)

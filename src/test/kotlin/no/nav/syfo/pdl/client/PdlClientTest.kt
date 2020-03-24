@@ -56,6 +56,7 @@ class PdlClientTest : Spek({
                 response.data.hentPerson?.navn!![0].fornavn shouldEqual "RASK"
                 response.data.hentPerson?.navn!![0].etternavn shouldEqual "SAKS"
                 response.data.hentPerson?.adressebeskyttelse!![0].gradering shouldEqual "UGRADERT"
+                response.data.hentIdenter?.identer!![0].ident shouldEqual "987654321"
             }
         }
         it("Skal få hentet getStrengtFortroligTestData person fra pdl") {
@@ -67,6 +68,7 @@ class PdlClientTest : Spek({
                 response.data.hentPerson?.navn!![0].fornavn shouldEqual "RASK"
                 response.data.hentPerson?.navn!![0].etternavn shouldEqual "SAKS"
                 response.data.hentPerson?.adressebeskyttelse!![0].gradering shouldEqual "STRENGT_FORTROLIG"
+                response.data.hentIdenter?.identer!![0].ident shouldEqual "987654321"
             }
         }
         it("Skal få hentPerson = null ved error") {

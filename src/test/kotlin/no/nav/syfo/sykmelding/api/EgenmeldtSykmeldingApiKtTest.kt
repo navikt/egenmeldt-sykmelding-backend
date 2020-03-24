@@ -53,7 +53,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
     val pdlService = mockk<PdlPersonService>()
     val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService, syfosmregisterClient)
-    val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false)
+    val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false, "12345678910")
 
     beforeEachTest {
         clearAllMocks()
