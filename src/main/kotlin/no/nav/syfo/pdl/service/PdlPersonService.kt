@@ -16,7 +16,7 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
     }
     suspend fun getPersonOgDiskresjonskode(fnr: String, userToken: String): PdlPerson {
         val stsToken = stsOidcClient.oidcToken().access_token
-        val pdlResponse = pdlClient.getPerson(fnr, userToken, stsToken)
+        val pdlResponse = pdlClient.getPerson(fnr = fnr, token = userToken, stsToken = stsToken)
         if (pdlResponse.data.hentPerson == null) {
             log.error("Fant ikke person i PDL")
             throw PersonNotFoundInPdl("Fant ikke person i PDL")
