@@ -3,6 +3,7 @@ package no.nav.syfo.sykmelding.mapping
 import com.migesok.jaxb.adapter.javatime.LocalDateTimeXmlAdapter
 import com.migesok.jaxb.adapter.javatime.LocalDateXmlAdapter
 import java.io.StringReader
+import java.time.LocalDate
 import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
 import javax.xml.bind.Unmarshaller
@@ -29,7 +30,7 @@ class FellesformatMapperServiceTest : Spek({
     val pasient = Pasient("12345678910", "1111", "Fornavn", null, "Etternavn")
     describe("Test av mapping") {
         it("Skal kunne unmarshalle xml fra mapperen") {
-            val fellesformat = opprettFellesformat(pasient, sykmeldingId)
+            val fellesformat = opprettFellesformat(pasient, sykmeldingId, LocalDate.now(), LocalDate.now().plusDays(14))
 
             fellesformatUnmarshaller.unmarshal(StringReader(fellesformatMarshaller.toString(fellesformat))) as XMLEIFellesformat
         }

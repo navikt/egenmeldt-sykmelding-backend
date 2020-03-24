@@ -22,6 +22,8 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import java.util.UUID
+import javax.jms.MessageProducer
+import javax.jms.Session
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
@@ -29,6 +31,7 @@ import no.nav.syfo.application.api.setupSwaggerDocApi
 import no.nav.syfo.arbeidsgivere.api.registrerArbeidsgiverApi
 import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.log
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_FAILED_COUNTER
 import no.nav.syfo.metrics.monitorHttpRequests
 import no.nav.syfo.sykmelding.api.registrerEgenmeldtSykmeldingApi
 import no.nav.syfo.sykmelding.errorhandling.setUpSykmeldingExceptionHandler
@@ -42,7 +45,9 @@ fun createApplicationEngine(
     jwkProvider: JwkProvider,
     issuer: String,
     arbeidsgiverService: ArbeidsgiverService,
-    egenmeldtSykmeldingService: EgenmeldtSykmeldingService
+    egenmeldtSykmeldingService: EgenmeldtSykmeldingService,
+    session: Session,
+    syfoserviceProducer: MessageProducer
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -64,8 +69,9 @@ fun createApplicationEngine(
         install(StatusPages) {
             setUpSykmeldingExceptionHandler()
             exception<Throwable> { cause ->
-                call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
                 log.error("Caught exception", cause)
+                EGENMELDT_SYKMELDING_FAILED_COUNTER.inc()
+                call.respond(HttpStatusCode.InternalServerError, cause.message ?: "Unknown error")
             }
         }
 
@@ -74,7 +80,7 @@ fun createApplicationEngine(
             if (env.cluster == "dev-fss") {
                 setupSwaggerDocApi()
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
                     registrerArbeidsgiverApi(arbeidsgiverService)
                 }
             }

@@ -21,12 +21,16 @@ import no.nav.helse.sm2013.CV
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.helse.sm2013.Ident
 import no.nav.helse.sm2013.NavnType
+import no.nav.helse.sm2013.TeleCom
+import no.nav.helse.sm2013.URL
 import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.Pasient
 
 fun opprettFellesformat(
     sykmeldt: Pasient,
-    sykmeldingId: String
+    sykmeldingId: String,
+    fom: LocalDate,
+    tom: LocalDate
 ): XMLEIFellesformat {
     log.info("Mapper sykmelding med id {} til XML-format", sykmeldingId)
     return XMLEIFellesformat().apply {
@@ -110,6 +114,11 @@ fun opprettFellesformat(
                         any.add(HelseOpplysningerArbeidsuforhet().apply {
                             syketilfelleStartDato = LocalDate.now()
                             pasient = HelseOpplysningerArbeidsuforhet.Pasient().apply {
+                                navn = NavnType().apply {
+                                    fornavn = sykmeldt.fornavn
+                                    mellomnavn = sykmeldt.mellomnavn
+                                    etternavn = sykmeldt.etternavn
+                                }
                                 fodselsnummer = Ident().apply {
                                     id = sykmeldt.fnr
                                     typeId = CV().apply {
@@ -122,7 +131,7 @@ fun opprettFellesformat(
                             arbeidsgiver = tilArbeidsgiver()
                             medisinskVurdering = tilMedisinskVurdering()
                             aktivitet = HelseOpplysningerArbeidsuforhet.Aktivitet().apply {
-                                periode.addAll(tilPeriodeListe())
+                                periode.addAll(tilPeriodeListe(fom = fom, tom = tom))
                             }
                             prognose = null
                             utdypendeOpplysninger = null
@@ -139,6 +148,7 @@ fun opprettFellesformat(
                                 systemNavn = "Egenmeldt"
                                 systemVersjon = "1"
                             }
+                            strekkode = "123456789qwerty"
                         })
                     }
                 }
@@ -172,13 +182,22 @@ fun tilBehandler(sykmeldt: Pasient): HelseOpplysningerArbeidsuforhet.Behandler =
                 }
             }))
         adresse = Address()
+        kontaktInfo.add(TeleCom().apply {
+            typeTelecom = CS().apply {
+                v = "HP"
+                dn = "Hovedtelefon"
+            }
+            teleAddress = URL().apply {
+                v = "tel:55553336"
+            }
+        })
     }
 
-fun tilPeriodeListe(): List<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode> {
+fun tilPeriodeListe(fom: LocalDate, tom: LocalDate): List<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode> {
     val periodeListe = ArrayList<HelseOpplysningerArbeidsuforhet.Aktivitet.Periode>()
     periodeListe.add(HelseOpplysningerArbeidsuforhet.Aktivitet.Periode().apply {
-        periodeFOMDato = LocalDate.now()
-        periodeTOMDato = LocalDate.now().plusDays(10)
+        periodeFOMDato = fom
+        periodeTOMDato = tom
         aktivitetIkkeMulig = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AktivitetIkkeMulig().apply {
             medisinskeArsaker = ArsakType().apply {
                 beskriv = "Har korona"
