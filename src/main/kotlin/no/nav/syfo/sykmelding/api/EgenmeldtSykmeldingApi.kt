@@ -10,6 +10,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER
 import javax.jms.MessageProducer
 import javax.jms.Session
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
@@ -20,6 +21,7 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
 
     route("api/v1/sykmelding/egenmeldt") {
         post {
+            EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER.inc()
             val principal: JWTPrincipal = call.authentication.principal()!!
             val fnr = principal.payload.subject
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
