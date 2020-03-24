@@ -22,7 +22,7 @@ class PdlClient(
     suspend fun getPerson(fnr: String, token: String, stsToken: String): GetPersonResponse {
         val getPersonRequest = GetPersonRequest(query = graphQlQuery, variables = GetPersonVeriables(ident = fnr))
         return httpClient.post(basePath) {
-            body = objectMapper.writeValueAsString(getPersonRequest)
+            body = getPersonRequest
             header(HttpHeaders.Authorization, token)
             header(temaHeader, tema)
             header(HttpHeaders.ContentType, "application/json")
