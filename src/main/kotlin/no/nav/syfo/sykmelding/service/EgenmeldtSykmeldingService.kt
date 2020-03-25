@@ -58,21 +58,22 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             mellomnavn = person.navn.mellomnavn,
             etternavn = person.navn.etternavn)
 
+        val antallArbeidsgivere = sykmeldingRequest.arbeidsforhold.size
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
             log.info("Registrerer sykmelding uten arbeidsforhold {}", callId)
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), session, syfoserviceProducer, pasient, callId)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
                 EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
             }
             log.info("Oppretter {} sykmeldinger {}", list.size, callId)
             for (egenmeldtSykmelding in list) {
-                registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer, pasient, callId)
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
             }
         }
     }
 
-    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer, pasient: Pasient, callId: String) {
+    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer, pasient: Pasient, antallArbeidsgivere: Int, callId: String) {
         log.info("Mottatt sykmelding med id {} for callId {}", egenmeldtSykmelding.id, callId)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
@@ -89,7 +90,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fom = fom, tom = tom)
+        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fom = fom, tom = tom, arbeidsforhold = egenmeldtSykmelding.arbeidsforhold, antallArbeidsgivere = antallArbeidsgivere)
         val receivedSykmelding = opprettReceivedSykmelding(pasient = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fellesformat = fellesformat)
 
         EGENMELDT_SYKMELDING_COUNTER.inc()

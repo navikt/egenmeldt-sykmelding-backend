@@ -2,6 +2,7 @@ package no.nav.syfo.sykmelding.mapping
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.RuntimeException
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLCS
 import no.nav.helse.msgHead.XMLCV
@@ -24,13 +25,16 @@ import no.nav.helse.sm2013.NavnType
 import no.nav.helse.sm2013.TeleCom
 import no.nav.helse.sm2013.URL
 import no.nav.syfo.log
+import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.Pasient
 
 fun opprettFellesformat(
     sykmeldt: Pasient,
     sykmeldingId: String,
     fom: LocalDate,
-    tom: LocalDate
+    tom: LocalDate,
+    arbeidsforhold: Arbeidsforhold?,
+    antallArbeidsgivere: Int
 ): XMLEIFellesformat {
     log.info("Mapper sykmelding med id {} til XML-format", sykmeldingId)
     return XMLEIFellesformat().apply {
@@ -128,7 +132,7 @@ fun opprettFellesformat(
                                     }
                                 }
                             }
-                            arbeidsgiver = tilArbeidsgiver()
+                            arbeidsgiver = tilArbeidsgiver(arbeidsforhold, antallArbeidsgivere)
                             medisinskVurdering = tilMedisinskVurdering()
                             aktivitet = HelseOpplysningerArbeidsuforhet.Aktivitet().apply {
                                 periode.addAll(tilPeriodeListe(fom = fom, tom = tom))
@@ -213,15 +217,30 @@ fun tilPeriodeListe(fom: LocalDate, tom: LocalDate): List<HelseOpplysningerArbei
     return periodeListe
 }
 
-fun tilArbeidsgiver(): HelseOpplysningerArbeidsuforhet.Arbeidsgiver =
+fun tilArbeidsgiver(arbeidsforhold: Arbeidsforhold?, antallArbeidsgivere: Int): HelseOpplysningerArbeidsuforhet.Arbeidsgiver =
     HelseOpplysningerArbeidsuforhet.Arbeidsgiver().apply {
-        harArbeidsgiver = CS().apply {
-            dn = "Én arbeidsgiver"
-            v = "1"
-        }
-        navnArbeidsgiver = "Bedriften AS"
-        yrkesbetegnelse = "Utvikler"
-        stillingsprosent = 100
+        harArbeidsgiver =
+            when {
+                antallArbeidsgivere == 1 -> CS().apply {
+                    dn = "Én arbeidsgiver"
+                    v = "1"
+                }
+                antallArbeidsgivere > 1 -> CS().apply {
+                    dn = "Flere arbeidsgivere"
+                    v = "2"
+                }
+                antallArbeidsgivere == 0 -> CS().apply {
+                    dn = "Ingen arbeidsgiver"
+                    v = "3"
+                }
+                else -> {
+                    log.error("Antall arbeidsforhold er mindre enn 0, skal ikke kunne skje")
+                    throw RuntimeException("Antall arbeidsforhold er mindre enn 0, skal ikke kunne skje")
+                }
+            }
+        navnArbeidsgiver = arbeidsforhold?.navn
+        yrkesbetegnelse = ""
+        stillingsprosent = arbeidsforhold?.stillingsprosent?.toInt()
     }
 
 fun tilMedisinskVurdering(): HelseOpplysningerArbeidsuforhet.MedisinskVurdering {
