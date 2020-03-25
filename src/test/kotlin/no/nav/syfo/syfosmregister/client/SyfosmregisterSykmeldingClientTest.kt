@@ -50,7 +50,7 @@ class SyfosmregisterSykmeldingClientTest : Spek({
         it("should get sykmelidng") {
             setResponseData(respond(getTestResponse(), HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json")))
             runBlocking {
-                val sykmeldinger = syfosmregisterClient.getSykmelidnger("token", LocalDate.now(), null)
+                val sykmeldinger = syfosmregisterClient.getSykmeldinger("token", LocalDate.now(), null)
                 sykmeldinger.size shouldEqual 1
             }
         }

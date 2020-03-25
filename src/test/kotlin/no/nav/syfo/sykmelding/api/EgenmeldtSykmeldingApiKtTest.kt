@@ -58,6 +58,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
+        coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
