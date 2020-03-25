@@ -20,7 +20,6 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
-import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -33,22 +32,20 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     val usertoken = "token"
     val callId = "callId"
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
-    val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
     val session = mockk<Session>()
     val syfoserviceProducer = mockk<MessageProducer>()
     val syfoserviceService = mockk<SyfoserviceService>()
     val pdlService = mockk<PdlPersonService>()
     val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService, syfosmregisterClient)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceService, syfosmregisterClient)
     val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false, "12345678910")
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
-        coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
-        coEvery { pdlService.getPersonOgDiskresjonskode(any(), any()) } returns person
+        coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
     }
 
     describe("EgenmeldtSykmeldingService test") {
@@ -76,7 +73,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
             }
         }
         it("Bruker med fortrolig adresse skal ikke få tilgang") {
-            coEvery { pdlService.getPersonOgDiskresjonskode(any(), any()) } returns person.copy(fortroligAdresse = true)
+            coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person.copy(fortroligAdresse = true)
             runBlocking {
                 assertFailsWith<IkkeTilgangException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(

@@ -52,7 +52,6 @@ fun TestApplicationEngine.setUpAuth(): Environment {
             mountPathVault = "",
             databaseName = "",
             registerBasePath = "",
-            aktoerregisterV1Url = "",
             pdlGraphqlPath = ""
     )
 

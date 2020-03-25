@@ -23,7 +23,6 @@ import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
-import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
@@ -37,7 +36,6 @@ import no.nav.syfo.sykmelding.util.toString
 @KtorExperimentalAPI
 class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val oppdaterTopicsService: OppdaterTopicsService,
-    private val aktoerIdClient: AktoerIdClient,
     private val database: DatabaseInterface,
     private val pdlPersonService: PdlPersonService,
     private val syfoserviceService: SyfoserviceService,
@@ -47,8 +45,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val dummyTssIdent = "80000821845"
 
     suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, session: Session, syfoserviceProducer: MessageProducer, userToken: String, callId: String) {
-        // val aktorId = aktoerIdClient.finnAktoerId(fnr, callId)
-        val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken)
+        val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken, callId = callId)
 
         if (person.fortroligAdresse) {
             log.warn("Bruker har ikke tilgang til tjenesten, msgId {}", callId)

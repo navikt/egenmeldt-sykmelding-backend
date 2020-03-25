@@ -31,7 +31,7 @@ class PdlServiceTest : Spek({
         it("hente person fra pdl uten fortrolig dresse") {
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse("UGRADERT")
             runBlocking {
-                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token")
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual false
                 person.navn.fornavn shouldEqual "fornavn"
                 person.navn.mellomnavn shouldEqual null
@@ -42,21 +42,21 @@ class PdlServiceTest : Spek({
         it("hente person fra pdl fortrolig dresse") {
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse("FORTROLIG")
             runBlocking {
-                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token")
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual false
             }
         }
         it("hente person fra pdl strengt fortrolig dresse") {
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(STRENGT_FORTROLIG)
             runBlocking {
-                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token")
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual true
             }
         }
         it("hente person fra pdl strengt fortrolig dresse") {
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(STRENGT_FORTROLIG_UTLAND)
             runBlocking {
-                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token")
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual true
             }
         }
@@ -65,7 +65,7 @@ class PdlServiceTest : Spek({
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(null, null))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
                 }
             }
             exception.message shouldEqual "Fant ikke person i PDL"
@@ -80,7 +80,7 @@ class PdlServiceTest : Spek({
             ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
                 }
             }
             exception.message shouldEqual "Fant ikke navn på person i PDL"
@@ -94,7 +94,7 @@ class PdlServiceTest : Spek({
             ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
                 }
             }
             exception.message shouldEqual "Fant ikke navn på person i PDL"
@@ -109,7 +109,7 @@ class PdlServiceTest : Spek({
             ))
             val exception = assertFailsWith<PersonNotFoundInPdl> {
                 runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
                 }
             }
             exception.message shouldEqual "Fant ikke diskresjonskode i PDL"
@@ -124,7 +124,7 @@ class PdlServiceTest : Spek({
             ))
             val exception = assertFailsWith<AktoerNotFoundException> {
                 runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token")
+                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
                 }
             }
             exception.message shouldEqual "Fant ikke aktørId i PDL"
