@@ -10,6 +10,7 @@ import javax.xml.bind.Unmarshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
 import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
+import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.Pasient
 import no.nav.syfo.sykmelding.util.XMLDateAdapter
 import no.nav.syfo.sykmelding.util.XMLDateTimeAdapter
@@ -29,8 +30,14 @@ class FellesformatMapperServiceTest : Spek({
     val sykmeldingId = "123456"
     val pasient = Pasient("12345678910", "1111", "Fornavn", null, "Etternavn")
     describe("Test av mapping") {
-        it("Skal kunne unmarshalle xml fra mapperen") {
-            val fellesformat = opprettFellesformat(pasient, sykmeldingId, LocalDate.now(), LocalDate.now().plusDays(14))
+        it("Skal kunne unmarshalle xml fra mapperen, med et arbeidsforhold") {
+            val fellesformat = opprettFellesformat(pasient, sykmeldingId, LocalDate.now(), LocalDate.now().plusDays(14), Arbeidsforhold("Bedriften A/S", "22223333", 50.0), 1)
+
+            fellesformatUnmarshaller.unmarshal(StringReader(fellesformatMarshaller.toString(fellesformat))) as XMLEIFellesformat
+        }
+
+        it("Skal kunne unmarshalle xml fra mapperen, uten arbeidsforhold") {
+            val fellesformat = opprettFellesformat(pasient, sykmeldingId, LocalDate.now(), LocalDate.now().plusDays(14), null, 0)
 
             fellesformatUnmarshaller.unmarshal(StringReader(fellesformatMarshaller.toString(fellesformat))) as XMLEIFellesformat
         }

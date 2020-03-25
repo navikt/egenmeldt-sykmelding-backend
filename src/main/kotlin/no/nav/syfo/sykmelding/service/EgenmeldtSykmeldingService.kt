@@ -20,9 +20,9 @@ import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
+import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
-import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.toSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
@@ -36,7 +36,6 @@ import no.nav.syfo.sykmelding.util.toString
 @KtorExperimentalAPI
 class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val oppdaterTopicsService: OppdaterTopicsService,
-    private val aktoerIdClient: AktoerIdClient,
     private val database: DatabaseInterface,
     private val pdlPersonService: PdlPersonService,
     private val syfoserviceService: SyfoserviceService,
@@ -45,23 +44,37 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
 
     private val dummyTssIdent = "80000821845"
 
-    suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, session: Session, syfoserviceProducer: MessageProducer) {
+    suspend fun registrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, session: Session, syfoserviceProducer: MessageProducer, userToken: String, callId: String) {
+        val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken, callId = callId)
+
+        if (person.fortroligAdresse) {
+            log.warn("Bruker har ikke tilgang til tjenesten, msgId {}", callId)
+            throw IkkeTilgangException("Bruker har ikke tilgang til tjenesten")
+        }
+        val pasient = Pasient(
+            fnr = fnr,
+            aktorId = person.aktorId,
+            fornavn = person.navn.fornavn,
+            mellomnavn = person.navn.mellomnavn,
+            etternavn = person.navn.etternavn)
+
+        val antallArbeidsgivere = sykmeldingRequest.arbeidsforhold.size
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
-            log.info("Registrerer sykmelding uten arbeidsforhold")
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), session, syfoserviceProducer)
+            log.info("Registrerer sykmelding uten arbeidsforhold {}", callId)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
                 EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
             }
-            log.info("Oppretter {} sykmeldinger", list.size)
+            log.info("Oppretter {} sykmeldinger {}", list.size, callId)
             for (egenmeldtSykmelding in list) {
-                registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer)
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
             }
         }
     }
 
-    private suspend fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer) {
-        log.info("Mottatt sykmelding med id {}", egenmeldtSykmelding.id)
+    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer, pasient: Pasient, antallArbeidsgivere: Int, callId: String) {
+        log.info("Mottatt sykmelding med id {} for callId {}", egenmeldtSykmelding.id, callId)
         val fom = egenmeldtSykmelding.periode.fom
         val tom = egenmeldtSykmelding.periode.tom
         if (tom.isBefore(fom)) {
@@ -77,18 +90,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-        val fnr = egenmeldtSykmelding.fnr
-        val sykmeldingId = egenmeldtSykmelding.id.toString()
-
-        val pasientIdent = aktoerIdClient.finnAktoerId(fnr, sykmeldingId)!!
-
-        val pasient = Pasient(
-            fnr = fnr,
-            aktorId = pasientIdent,
-            fornavn = "Fanny",
-            mellomnavn = null,
-            etternavn = "Storm")
-        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fom = fom, tom = tom)
+        val fellesformat = opprettFellesformat(sykmeldt = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fom = fom, tom = tom, arbeidsforhold = egenmeldtSykmelding.arbeidsforhold, antallArbeidsgivere = antallArbeidsgivere)
         val receivedSykmelding = opprettReceivedSykmelding(pasient = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fellesformat = fellesformat)
 
         EGENMELDT_SYKMELDING_COUNTER.inc()

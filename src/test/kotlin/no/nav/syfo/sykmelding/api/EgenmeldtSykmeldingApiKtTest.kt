@@ -21,11 +21,12 @@ import javax.jms.Session
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
+import no.nav.syfo.pdl.model.Navn
+import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
 import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
-import no.nav.syfo.sykmelding.integration.aktor.client.AktoerIdClient
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -43,20 +44,20 @@ import org.spekframework.spek2.style.specification.describe
 @KtorExperimentalAPI
 class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
-    val aktoerIdClient = mockk<AktoerIdClient>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
     val session = mockk<Session>()
     val syfoserviceProducer = mockk<MessageProducer>()
     val syfoserviceService = mockk<SyfoserviceService>()
     val pdlService = mockk<PdlPersonService>()
     val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, aktoerIdClient, database, pdlService, syfoserviceService, syfosmregisterClient)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceService, syfosmregisterClient)
+    val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false, "12345678910")
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
-        coEvery { aktoerIdClient.finnAktoerId(any(), any()) } returns "12345678910"
+        coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
