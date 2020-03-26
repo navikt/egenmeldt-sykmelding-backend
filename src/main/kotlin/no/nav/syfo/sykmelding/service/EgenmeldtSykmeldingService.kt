@@ -21,6 +21,7 @@ import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapper
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
@@ -48,7 +49,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken, callId = callId)
 
         if (person.fortroligAdresse) {
-            log.warn("Bruker har ikke tilgang til tjenesten, msgId {}", callId)
+            log.warn("Bruker har ikke tilgang til tjenesten, callId {}", callId)
             throw IkkeTilgangException("Bruker har ikke tilgang til tjenesten")
         }
         val pasient = Pasient(
@@ -57,6 +58,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             fornavn = person.navn.fornavn,
             mellomnavn = person.navn.mellomnavn,
             etternavn = person.navn.etternavn)
+
+        if (harOverlappendeSykmeldingerIRegisteret(userToken, sykmeldingRequest)) {
+            log.warn("Bruker har allerede sykmeldinger som overlapper med valgt periode {}", callId)
+            throw OverlappMedEksisterendeSykmeldingException("Bruker har allerede sykmeldinger som overlapper med valgt periode")
+        }
 
         val antallArbeidsgivere = sykmeldingRequest.arbeidsforhold.size
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
@@ -129,5 +135,10 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             fellesformat = fellesformatMarshaller.toString(fellesformat),
             tssid = dummyTssIdent
         )
+    }
+
+    private suspend fun harOverlappendeSykmeldingerIRegisteret(token: String, sykmeldingRequest: EgenmeldtSykmeldingRequest): Boolean {
+        val tidligereSykmeldinger = syfosmregisterSykmeldingClient.getSykmeldinger(token = token, fom = sykmeldingRequest.periode.fom, tom = null)
+        return tidligereSykmeldinger.isNotEmpty()
     }
 }

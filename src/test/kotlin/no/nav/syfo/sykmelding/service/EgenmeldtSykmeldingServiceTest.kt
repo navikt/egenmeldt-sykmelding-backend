@@ -18,7 +18,12 @@ import no.nav.syfo.pdl.model.Navn
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
+import no.nav.syfo.syfosmregister.model.BehandlingsutfallDTO
+import no.nav.syfo.syfosmregister.model.BehandlingsutfallStatusDTO
+import no.nav.syfo.syfosmregister.model.SykmeldingDTO
+import no.nav.syfo.syfosmregister.model.SykmeldingsperiodeDTO
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
@@ -46,6 +51,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
         every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
+        coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
     }
 
     describe("EgenmeldtSykmeldingService test") {
@@ -76,6 +82,24 @@ class EgenmeldtSykmeldingServiceTest : Spek({
             coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person.copy(fortroligAdresse = true)
             runBlocking {
                 assertFailsWith<IkkeTilgangException>() {
+                    val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                        Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().minusDays(1)
+                        ),
+                        listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                }
+            }
+        }
+        it("Får feilmelding hvis bruker har overlappende sykmeldinger i registeret fra før") {
+            coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns listOf(SykmeldingDTO(
+                id = "123456",
+                sykmeldingsperioder = listOf(SykmeldingsperiodeDTO(LocalDate.now().minusDays(10), LocalDate.now().plusDays(5), null)),
+                medisinskVurdering = null,
+                behandlingsutfall = BehandlingsutfallDTO(emptyList(), BehandlingsutfallStatusDTO.OK)))
+            runBlocking {
+                assertFailsWith<OverlappMedEksisterendeSykmeldingException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                         Periode(
                             fom = LocalDate.now(),

@@ -9,7 +9,7 @@ import java.time.LocalDate
 import no.nav.syfo.syfosmregister.model.SykmeldingDTO
 
 class SyfosmregisterSykmeldingClient(private val httpClient: HttpClient, private val baseUrl: String) {
-    suspend fun getSykmelidnger(token: String, fom: LocalDate, tom: LocalDate?): List<SykmeldingDTO> {
+    suspend fun getSykmeldinger(token: String, fom: LocalDate, tom: LocalDate?): List<SykmeldingDTO> {
         return httpClient.get(getRequestUrl(fom, tom)) {
             accept(ContentType.Application.Json)
             headers {
