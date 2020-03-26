@@ -204,7 +204,7 @@ fun tilPeriodeListe(fom: LocalDate, tom: LocalDate): List<HelseOpplysningerArbei
         periodeTOMDato = tom
         aktivitetIkkeMulig = HelseOpplysningerArbeidsuforhet.Aktivitet.Periode.AktivitetIkkeMulig().apply {
             medisinskeArsaker = ArsakType().apply {
-                beskriv = "Har korona"
+                beskriv = null
                 arsakskode.add(CS())
             }
             arbeidsplassen = null
