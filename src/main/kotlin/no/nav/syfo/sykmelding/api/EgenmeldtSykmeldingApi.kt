@@ -29,7 +29,7 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(sykmeldingRequest = egenmeldtSykmeldingRequest, fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
+            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = egenmeldtSykmeldingRequest, fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
             call.respond(HttpStatusCode.Created)
         }
     }

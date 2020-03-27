@@ -110,7 +110,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.BadRequest
-                    getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
+                    getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom-dato er før fom-dato")))
                 }
             }
         }
