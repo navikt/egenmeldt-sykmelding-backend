@@ -3,8 +3,6 @@ package no.nav.syfo.sykmelding.service
 import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDate
 import java.util.UUID
-import javax.jms.MessageProducer
-import javax.jms.Session
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER
@@ -20,12 +18,12 @@ import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
 import no.nav.syfo.sykmelding.mapping.opprettReceivedSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
-import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 
 val tidligsteGyldigeFom: LocalDate = LocalDate.of(2020, 3, 1)
@@ -36,11 +34,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     private val oppdaterTopicsService: OppdaterTopicsService,
     private val database: DatabaseInterface,
     private val pdlPersonService: PdlPersonService,
-    private val syfoserviceService: SyfoserviceService,
+    private val syfoserviceServiceKafkaProducer: SykmeldingSyfoserviceKafkaProducer,
     private val syfosmregisterSykmeldingClient: SyfosmregisterSykmeldingClient
 ) {
 
-    suspend fun validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, session: Session, syfoserviceProducer: MessageProducer, userToken: String, callId: String) {
+    suspend fun validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest: EgenmeldtSykmeldingRequest, fnr: String, userToken: String, callId: String) {
         val person = pdlPersonService.getPersonOgDiskresjonskode(fnr = fnr, userToken = userToken, callId = callId)
         val pasient = Pasient(
             fnr = fnr,
@@ -61,19 +59,19 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
 
         val antallArbeidsgivere = sykmeldingRequest.arbeidsforhold.size
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), pasient, antallArbeidsgivere, callId)
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
                 EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
             }
             log.info("Oppretter {} sykmeldinger {}", list.size, callId)
             for (egenmeldtSykmelding in list) {
-                registrerEgenmeldtSykmelding(egenmeldtSykmelding, session, syfoserviceProducer, pasient, antallArbeidsgivere, callId)
+                registrerEgenmeldtSykmelding(egenmeldtSykmelding, pasient, antallArbeidsgivere, callId)
             }
         }
     }
 
-    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, session: Session, syfoserviceProducer: MessageProducer, pasient: Pasient, antallArbeidsgivere: Int, callId: String) {
+    private fun registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding, pasient: Pasient, antallArbeidsgivere: Int, callId: String) {
         log.info("Registrerer sykmelding med id {} for callId {}", egenmeldtSykmelding.id, callId)
         database.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
@@ -81,7 +79,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         val receivedSykmelding = opprettReceivedSykmelding(pasient = pasient, sykmeldingId = egenmeldtSykmelding.id.toString(), fellesformat = fellesformat)
 
         oppdaterTopicsService.oppdaterOKTopic(receivedSykmelding)
-        syfoserviceService.sendTilSyfoservice(session, syfoserviceProducer, egenmeldtSykmelding.id.toString(), extractHelseOpplysningerArbeidsuforhet(fellesformat))
+        syfoserviceServiceKafkaProducer.publishSykmeldingToKafka(egenmeldtSykmelding.id.toString(), extractHelseOpplysningerArbeidsuforhet(fellesformat))
         EGENMELDT_SYKMELDING_COUNTER.inc()
     }
 

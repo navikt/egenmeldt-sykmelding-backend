@@ -12,14 +12,12 @@ import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
 import java.util.UUID
-import javax.jms.MessageProducer
-import javax.jms.Session
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 
 @KtorExperimentalAPI
-fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtSykmeldingService, session: Session, syfoserviceProducer: MessageProducer) {
+fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtSykmeldingService) {
 
     route("api/v1/sykmelding/egenmeldt") {
         post {
@@ -29,7 +27,7 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest), fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
+            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
             call.respond(HttpStatusCode.Created)
         }
     }

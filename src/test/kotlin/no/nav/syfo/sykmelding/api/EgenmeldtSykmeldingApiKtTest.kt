@@ -16,8 +16,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
 import java.time.LocalDate
-import javax.jms.MessageProducer
-import javax.jms.Session
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
@@ -25,12 +23,12 @@ import no.nav.syfo.pdl.model.Navn
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
+import no.nav.syfo.sykmelding.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
-import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import no.nav.syfo.sykmelding.util.generateJWT
 import no.nav.syfo.sykmelding.util.getObjectMapper
 import no.nav.syfo.sykmelding.util.setUpAuth
@@ -43,18 +41,17 @@ import org.spekframework.spek2.style.specification.describe
 class EgenmeldtSykmeldingApiKtTest : Spek({
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
-    val session = mockk<Session>()
-    val syfoserviceProducer = mockk<MessageProducer>()
-    val syfoserviceService = mockk<SyfoserviceService>()
+
+    val syfoserviceKafkaProducer = mockk<SykmeldingSyfoserviceKafkaProducer>()
     val pdlService = mockk<PdlPersonService>()
     val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceService, syfosmregisterClient)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceKafkaProducer, syfosmregisterClient)
     val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false, "12345678910")
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
-        every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
+        every { syfoserviceKafkaProducer.publishSykmeldingToKafka(any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
         coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
     }
@@ -69,7 +66,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
             application.routing {
                 registerNaisApi(applicationState)
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
                 }
             }
 
@@ -121,7 +118,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
 
             application.routing {
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
                 }
             }
 

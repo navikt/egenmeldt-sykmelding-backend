@@ -9,8 +9,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
 import java.time.LocalDate
-import javax.jms.MessageProducer
-import javax.jms.Session
 import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import no.nav.syfo.db.DatabaseInterface
@@ -27,10 +25,10 @@ import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
+import no.nav.syfo.sykmelding.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
-import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
@@ -40,18 +38,16 @@ class EgenmeldtSykmeldingServiceTest : Spek({
     val callId = "callId"
     val oppdaterTopicsService = mockk<OppdaterTopicsService>()
     val database = mockkClass(DatabaseInterface::class, relaxed = true)
-    val session = mockk<Session>()
-    val syfoserviceProducer = mockk<MessageProducer>()
-    val syfoserviceService = mockk<SyfoserviceService>()
+    val syfoserviceProducer = mockk<SykmeldingSyfoserviceKafkaProducer>()
     val pdlService = mockk<PdlPersonService>()
     val syfosmregisterClient = mockk<SyfosmregisterSykmeldingClient>()
-    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceService, syfosmregisterClient)
+    val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(oppdaterTopicsService, database, pdlService, syfoserviceProducer, syfosmregisterClient)
     val person = PdlPerson(Navn(fornavn = "Fornavn", mellomnavn = "Mellomnavn", etternavn = "Etternavn"), false, "12345678910")
 
     beforeEachTest {
         clearAllMocks()
         every { oppdaterTopicsService.oppdaterOKTopic(any()) } just Runs
-        every { syfoserviceService.sendTilSyfoservice(any(), any(), any(), any()) } just Runs
+        every { syfoserviceProducer.publishSykmeldingToKafka(any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
         coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
     }
@@ -64,7 +60,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                 fom = LocalDate.now(),
                                 tom = LocalDate.now().plusDays(1)),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
         }
         it("Skal feile hvis FOM er før egenmeldt sykmelding er tilgjengelig") {
@@ -75,7 +71,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             fom = tidligsteGyldigeFom.minusDays(2),
                             tom = tidligsteGyldigeFom.plusDays(7)),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
             }
         }
@@ -86,7 +82,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         fom = tidligsteGyldigeFom,
                         tom = tidligsteGyldigeFom.plusDays(7)),
                     listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
         }
         it("Skal feile hvis perioden for egenmeldt sykmelding er for lang") {
@@ -97,7 +93,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             fom = LocalDate.now(),
                             tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong() + 1)),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
             }
         }
@@ -108,7 +104,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         fom = LocalDate.now(),
                         tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong())),
                     listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
         }
         it("Should throw exception when tom is before fom") {
@@ -120,7 +116,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                     tom = LocalDate.now().minusDays(1)
                             ),
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
             }
         }
@@ -134,7 +130,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             tom = LocalDate.now()
                         ),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
             }
         }
@@ -153,7 +149,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         ),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
 
-                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
             }
         }
