@@ -1,21 +1,20 @@
 package no.nav.syfo.sykmelding.mapping
 
 import java.time.LocalDateTime
-import javax.xml.bind.JAXBContext
 import javax.xml.bind.Marshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
-import no.nav.helse.sm2013.HelseOpplysningerArbeidsuforhet
 import no.nav.syfo.model.ReceivedSykmelding
 import no.nav.syfo.sykmelding.model.Pasient
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
+import no.nav.syfo.sykmelding.util.fellesformatJaxBContext
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
 
 const val dummyTssIdent = "80000821845"
 
 fun opprettReceivedSykmelding(pasient: Pasient, sykmeldingId: String, fellesformat: XMLEIFellesformat): ReceivedSykmelding {
-    val fellesformatMarshaller: Marshaller = JAXBContext.newInstance(XMLEIFellesformat::class.java, XMLMsgHead::class.java, HelseOpplysningerArbeidsuforhet::class.java).createMarshaller()
+    val fellesformatMarshaller: Marshaller = fellesformatJaxBContext.createMarshaller()
         .apply { setProperty(Marshaller.JAXB_ENCODING, "UTF-8") }
 
     val healthInformation = extractHelseOpplysningerArbeidsuforhet(fellesformat)
