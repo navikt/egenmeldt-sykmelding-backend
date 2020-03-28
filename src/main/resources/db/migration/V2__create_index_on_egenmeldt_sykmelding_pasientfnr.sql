@@ -1,0 +1,1 @@
+create index concurrently egenmeldt_sykmelding_pasientfnr_idx on egenmeldt_sykmelding(pasientfnr);

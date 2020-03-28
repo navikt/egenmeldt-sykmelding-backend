@@ -116,7 +116,7 @@ fun opprettFellesformat(
                     }
                     content = XMLRefDoc.Content().apply {
                         any.add(HelseOpplysningerArbeidsuforhet().apply {
-                            syketilfelleStartDato = LocalDate.now()
+                            syketilfelleStartDato = fom
                             pasient = HelseOpplysningerArbeidsuforhet.Pasient().apply {
                                 navn = NavnType().apply {
                                     fornavn = sykmeldt.fornavn

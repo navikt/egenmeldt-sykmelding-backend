@@ -66,6 +66,20 @@ fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmeld
     return false
 }
 
+fun DatabaseInterface.sykmeldingErAlleredeRegistrertForBruker(fnr: String): Boolean =
+    connection.use { connection ->
+        connection.prepareStatement(
+            """
+               SELECT 1 
+               FROM egenmeldt_sykmelding 
+               WHERE pasientfnr = ?
+            """
+        ).use {
+            it.setString(1, fnr)
+            it.executeQuery().next()
+        }
+    }
+
 fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
     connection.use { connection ->
 

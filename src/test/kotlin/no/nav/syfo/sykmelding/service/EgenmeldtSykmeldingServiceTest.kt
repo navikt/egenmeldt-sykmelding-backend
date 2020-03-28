@@ -22,6 +22,8 @@ import no.nav.syfo.syfosmregister.model.BehandlingsutfallDTO
 import no.nav.syfo.syfosmregister.model.BehandlingsutfallStatusDTO
 import no.nav.syfo.syfosmregister.model.SykmeldingDTO
 import no.nav.syfo.syfosmregister.model.SykmeldingsperiodeDTO
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
@@ -54,7 +56,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
         coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
     }
 
-    describe("EgenmeldtSykmeldingService test") {
+    describe("Test av valideringsregler") {
         it("Should be ok") {
             runBlocking {
                 val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
@@ -62,10 +64,54 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                 fom = LocalDate.now(),
                                 tom = LocalDate.now().plusDays(1)),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
             }
         }
-        it("Should throw exception when tom is before form") {
+        it("Skal feile hvis FOM er før egenmeldt sykmelding er tilgjengelig") {
+            runBlocking {
+                assertFailsWith<ForTidligsteFomException>() {
+                    val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                        Periode(
+                            fom = tidligsteGyldigeFom.minusDays(2),
+                            tom = tidligsteGyldigeFom.plusDays(7)),
+                        listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                }
+            }
+        }
+        it("Skal gå ok hvis FOM er samme dag som egenmeldt sykmelding ble tilgjengelig") {
+            runBlocking {
+                val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                    Periode(
+                        fom = tidligsteGyldigeFom,
+                        tom = tidligsteGyldigeFom.plusDays(7)),
+                    listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+            }
+        }
+        it("Skal feile hvis perioden for egenmeldt sykmelding er for lang") {
+            runBlocking {
+                assertFailsWith<ForLangPeriodeException>() {
+                    val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                        Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong() + 1)),
+                        listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                }
+            }
+        }
+        it("Skal gå ok hvis perioden for egenmeldt sykmelding er akkurat 16 dager") {
+            runBlocking {
+                val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
+                    Periode(
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong())),
+                    listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+            }
+        }
+        it("Should throw exception when tom is before fom") {
             runBlocking {
                 assertFailsWith<TomBeforeFomDateException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
@@ -74,7 +120,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                     tom = LocalDate.now().minusDays(1)
                             ),
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
                 }
             }
         }
@@ -84,11 +130,11 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 assertFailsWith<IkkeTilgangException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                         Periode(
-                            fom = LocalDate.now(),
-                            tom = LocalDate.now().minusDays(1)
+                            fom = LocalDate.now().minusDays(1),
+                            tom = LocalDate.now()
                         ),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
                 }
             }
         }
@@ -102,11 +148,12 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 assertFailsWith<OverlappMedEksisterendeSykmeldingException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                         Periode(
-                            fom = LocalDate.now(),
-                            tom = LocalDate.now().minusDays(1)
+                            fom = LocalDate.now().minusDays(1),
+                            tom = LocalDate.now()
                         ),
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
-                    egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
+
+                    egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", session, syfoserviceProducer, usertoken, callId)
                 }
             }
         }

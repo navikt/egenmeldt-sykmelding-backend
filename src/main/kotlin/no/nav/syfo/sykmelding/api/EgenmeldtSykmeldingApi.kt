@@ -29,8 +29,20 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.registrerEgenmeldtSykmelding(sykmeldingRequest = egenmeldtSykmeldingRequest, fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
+            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest), fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
             call.respond(HttpStatusCode.Created)
         }
     }
+}
+
+// Kun tilgjengelig hvis man ikke har arbeidsforhold p.t., og nøyaktig 16 dager
+fun overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest: EgenmeldtSykmeldingRequest): EgenmeldtSykmeldingRequest {
+    val originalPeriode = egenmeldtSykmeldingRequest.periode
+    return egenmeldtSykmeldingRequest.copy(
+        arbeidsforhold = emptyList(),
+        periode = originalPeriode.copy(
+            fom = originalPeriode.fom,
+            tom = originalPeriode.fom.plusDays(15)
+        )
+    )
 }

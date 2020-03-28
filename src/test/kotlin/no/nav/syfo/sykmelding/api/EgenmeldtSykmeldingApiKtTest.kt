@@ -25,8 +25,6 @@ import no.nav.syfo.pdl.model.Navn
 import no.nav.syfo.pdl.model.PdlPerson
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
-import no.nav.syfo.sykmelding.errorhandling.EgenmeldtSykmeldingError
-import no.nav.syfo.sykmelding.errorhandling.ErrorResponse
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Periode
@@ -94,7 +92,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 }
             }
 
-            it("Should get bad request") {
+            it("Skal overstyre TOM") {
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
                             periode = Periode(
@@ -109,8 +107,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
-                    response.status() shouldEqual HttpStatusCode.BadRequest
-                    getObjectMapper().readValue(response.content, ErrorResponse::class.java) shouldEqual ErrorResponse(listOf(EgenmeldtSykmeldingError("Tom date is before Fom date")))
+                    response.status() shouldEqual HttpStatusCode.Created
                 }
             }
         }

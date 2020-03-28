@@ -5,17 +5,22 @@ import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlinx.coroutines.runBlocking
 import no.nav.syfo.sykmelding.model.Arbeidsforhold
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.util.TestDB
+import no.nav.syfo.sykmelding.util.dropData
+import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
 
 class EgenmeldtSykmeldingDAOTest : Spek({
 
     val testDB = TestDB()
+
+    afterEachTest {
+        testDB.connection.dropData()
+    }
 
     afterGroup {
         testDB.stop()
@@ -28,47 +33,54 @@ class EgenmeldtSykmeldingDAOTest : Spek({
                 Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
 
         it("Should not overlap when not exists") {
-            runBlocking {
-                assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
-            }
+            assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
         }
 
         it("Should insert") {
-            runBlocking {
-                testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
-            }
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
         }
 
         it("Should overlap after insert") {
-            runBlocking {
-                assertTrue(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
-            }
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+
+            assertTrue(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
         }
 
         it("Should allow arbeidsforhold = null") {
-            runBlocking {
+            val egenmeldtSykmeldingUtenArbeidsforhold = EgenmeldtSykmelding(UUID.randomUUID(),
+                "12345678912",
+                null,
+                Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
 
-                val egenmeldtSykmelding = EgenmeldtSykmelding(UUID.randomUUID(),
-                        "12345678912",
-                        null,
-                        Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
-
-                assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
-            }
+            assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmeldingUtenArbeidsforhold))
         }
 
         it("Should  query by id") {
-            runBlocking {
-                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.id)
-                assertEquals(egenmeldtSykmelding, res)
-            }
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+
+            val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.id)
+
+            assertEquals(egenmeldtSykmelding, res)
         }
 
         it("Should  query by fødselsnummer") {
-            runBlocking {
-                val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
-                assertEquals(egenmeldtSykmelding, res)
-            }
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+
+            val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+
+            assertEquals(egenmeldtSykmelding, res)
+        }
+    }
+
+    describe("Verifisering av duplikatsjekk") {
+        it("sykmeldingErAlleredeRegistrert skal returnere false når sykmelding ikke er registrert") {
+            testDB.sykmeldingErAlleredeRegistrertForBruker("fnr") shouldEqual false
+        }
+
+        it("sykmeldingErAlleredeRegistrert skal returnere true når en lik sykmelding er registrert fra før") {
+            testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), "fnr", null, Periode(LocalDate.now().minusDays(10), LocalDate.now())))
+
+            testDB.sykmeldingErAlleredeRegistrertForBruker("fnr") shouldEqual true
         }
     }
 })
