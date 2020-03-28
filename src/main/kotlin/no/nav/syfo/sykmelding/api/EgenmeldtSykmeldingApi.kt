@@ -29,7 +29,9 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = egenmeldtSykmeldingRequest, fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
+            // Kun tilgjengelig hvis man ikke har arbeidsforhold p.t.
+            val egenmeldtSykmeldingRequestUtenArbeidsforhold = egenmeldtSykmeldingRequest.copy(arbeidsforhold = emptyList())
+            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = egenmeldtSykmeldingRequestUtenArbeidsforhold, fnr = fnr, session = session, syfoserviceProducer = syfoserviceProducer, userToken = token, callId = callId)
             call.respond(HttpStatusCode.Created)
         }
     }
