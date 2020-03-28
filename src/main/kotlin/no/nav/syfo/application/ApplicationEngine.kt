@@ -22,8 +22,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.util.KtorExperimentalAPI
 import java.util.UUID
-import javax.jms.MessageProducer
-import javax.jms.Session
 import no.nav.syfo.Environment
 import no.nav.syfo.VaultSecrets
 import no.nav.syfo.application.api.registerNaisApi
@@ -45,9 +43,7 @@ fun createApplicationEngine(
     jwkProvider: JwkProvider,
     issuer: String,
     arbeidsgiverService: ArbeidsgiverService,
-    egenmeldtSykmeldingService: EgenmeldtSykmeldingService,
-    session: Session,
-    syfoserviceProducer: MessageProducer
+    egenmeldtSykmeldingService: EgenmeldtSykmeldingService
 ): ApplicationEngine =
     embeddedServer(Netty, env.applicationPort) {
         install(ContentNegotiation) {
@@ -80,7 +76,7 @@ fun createApplicationEngine(
             if (env.cluster == "dev-fss") {
                 setupSwaggerDocApi()
                 authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService, session, syfoserviceProducer)
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
                     registrerArbeidsgiverApi(arbeidsgiverService)
                 }
             }

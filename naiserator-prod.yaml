@@ -48,16 +48,6 @@ spec:
   env:
     - name: KAFKA_BOOTSTRAP_SERVERS_URL
       value: SASL_SSL://a01apvl00145.adeo.no:8443,SASL_SSL://a01apvl00146.adeo.no:8443,SASL_SSL://a01apvl00147.adeo.no:8443,SASL_SSL://a01apvl00149.adeo.no:8443
-    - name: MQ_HOST_NAME
-      value: a01apvl062.adeo.no
-    - name: MQ_PORT
-      value: '1414'
-    - name: MQ_GATEWAY_NAME
-      value: MPLSC03
-    - name: MQ_CHANNEL_NAME
-      value: P_EGENMELDT
-    - name: MQ_SYFOSERVICE_QUEUE_NAME
-      value: QA.P_EIA_SYFO_OUTBOUND
     - name: EGENMELDT_SYKMELDING_BACKEND_DB_URL
       value: jdbc:postgresql://A01DBVL011.adeo.no:5432/egenmeldt-sykmelding-backend
     - name: MOUNT_PATH_VAULT
