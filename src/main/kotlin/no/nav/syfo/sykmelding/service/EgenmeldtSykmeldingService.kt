@@ -13,7 +13,7 @@ import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
-import no.nav.syfo.sykmelding.db.sykmeldingErAlleredeRegistrert
+import no.nav.syfo.sykmelding.db.sykmeldingErAlleredeRegistrertForBruker
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
@@ -25,7 +25,6 @@ import no.nav.syfo.sykmelding.mapping.opprettReceivedSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
-import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.service.syfoservice.SyfoserviceService
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 
@@ -104,10 +103,10 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             log.warn("Egenmeldt sykmelding kan ikke være mer enn {} dager", maxAntallDagerSykmeldt)
             throw ForLangPeriodeException("Egenmeldt sykmelding kan ikke være lenger enn $maxAntallDagerSykmeldt dager")
         }
-        if (database.sykmeldingErAlleredeRegistrert(fnr = fnr, periode = Periode(fom = fom, tom = tom))) {
-            log.warn("Det finnes en sykmelding fra før for samme periode og bruker, {}", callId)
+        if (database.sykmeldingErAlleredeRegistrertForBruker(fnr = fnr)) {
+            log.warn("Det finnes en egenmeldt sykmelding fra før for samme bruker, {}", callId)
             EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER.inc()
-            throw SykmeldingAlreadyExistsException("Det finnes en sykmelding fra før for samme periode og fødselsnummer")
+            throw SykmeldingAlreadyExistsException("Du kan kun benytte egenmeldt sykmelding én gang")
         }
         if (harOverlappendeSykmeldingerIRegisteret(token = userToken, fom = fom, tom = tom)) {
             log.warn("Bruker har allerede sykmeldinger som overlapper med valgt periode {}", callId)

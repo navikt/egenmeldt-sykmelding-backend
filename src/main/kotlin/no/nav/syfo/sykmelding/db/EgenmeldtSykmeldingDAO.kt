@@ -66,19 +66,16 @@ fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmeld
     return false
 }
 
-fun DatabaseInterface.sykmeldingErAlleredeRegistrert(fnr: String, periode: Periode): Boolean =
+fun DatabaseInterface.sykmeldingErAlleredeRegistrertForBruker(fnr: String): Boolean =
     connection.use { connection ->
         connection.prepareStatement(
             """
-           SELECT 1 
-           FROM egenmeldt_sykmelding 
-           WHERE pasientfnr = ? 
-                AND fom = ? AND tom = ?
+               SELECT 1 
+               FROM egenmeldt_sykmelding 
+               WHERE pasientfnr = ?
             """
         ).use {
             it.setString(1, fnr)
-            it.setDate(2, Date.valueOf(periode.fom))
-            it.setDate(3, Date.valueOf(periode.tom))
             it.executeQuery().next()
         }
     }

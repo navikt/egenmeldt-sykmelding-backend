@@ -74,13 +74,13 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
     describe("Verifisering av duplikatsjekk") {
         it("sykmeldingErAlleredeRegistrert skal returnere false når sykmelding ikke er registrert") {
-            testDB.sykmeldingErAlleredeRegistrert("fnr", Periode(LocalDate.now().minusDays(10), LocalDate.now())) shouldEqual false
+            testDB.sykmeldingErAlleredeRegistrertForBruker("fnr") shouldEqual false
         }
 
         it("sykmeldingErAlleredeRegistrert skal returnere true når en lik sykmelding er registrert fra før") {
             testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), "fnr", null, Periode(LocalDate.now().minusDays(10), LocalDate.now())))
 
-            testDB.sykmeldingErAlleredeRegistrert("fnr", Periode(LocalDate.now().minusDays(10), LocalDate.now())) shouldEqual true
+            testDB.sykmeldingErAlleredeRegistrertForBruker("fnr") shouldEqual true
         }
     }
 })
