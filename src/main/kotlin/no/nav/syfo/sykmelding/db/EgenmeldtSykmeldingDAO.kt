@@ -2,7 +2,6 @@ package no.nav.syfo.sykmelding.db
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.sql.Connection
 import java.sql.Date
 import java.sql.ResultSet
 import java.util.UUID
@@ -98,37 +97,19 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding? {
     }
 }
 
-fun DatabaseInterface.finnOgSlettSykmelding(id: UUID) {
+fun DatabaseInterface.slettEgenmeldtSykmelding(id: UUID) {
     connection.use { connection ->
-        if (connection.finnesEgenmeldtSykmelding(id)) {
-            connection.slettEgenmeldtSykmelding(id)
-            connection.commit()
-        }
-    }
-}
-
-private fun Connection.finnesEgenmeldtSykmelding(id: UUID): Boolean =
-    prepareStatement(
-        """
-               SELECT 1 
-               FROM egenmeldt_sykmelding 
-               WHERE id = ?;
+        log.info("Sletter innslag for egenmeldt sykmelding med id: {}", id.toString())
+        connection.prepareStatement(
             """
-    ).use {
-        it.setObject(1, id)
-        it.executeQuery().next()
-    }
-
-private fun Connection.slettEgenmeldtSykmelding(id: UUID) {
-    log.info("Sletter innslag for egenmeldt sykmelding med id: {}", id.toString())
-    this.prepareStatement(
-        """
                 DELETE FROM egenmeldt_sykmelding
                 WHERE id=?;
             """
-    ).use {
-        it.setObject(1, id)
-        it.execute()
+        ).use {
+            it.setObject(1, id)
+            it.execute()
+        }
+        connection.commit()
     }
 }
 

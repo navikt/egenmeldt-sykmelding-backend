@@ -12,8 +12,8 @@ import no.nav.syfo.model.sykmeldingstatus.StatusEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaEventDTO
 import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.sykmelding.db.finnEgenmeldtSykmelding
-import no.nav.syfo.sykmelding.db.finnOgSlettSykmelding
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
+import no.nav.syfo.sykmelding.db.slettEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.util.TestDB
@@ -43,12 +43,12 @@ class StatusendringServiceTest : Spek({
         it("Skal ignorere statusevent APEN") {
             statusendringServiceMedMockDB.handterStatusendring(opprettKafkaMelding(sykmeldingId.toString(), "fnr", StatusEventDTO.APEN))
 
-            verify(exactly = 0) { databaseMock.finnOgSlettSykmelding(any()) }
+            verify(exactly = 0) { databaseMock.slettEgenmeldtSykmelding(any()) }
         }
         it("Skal kalle finnOgSlett for statusevent AVBRUTT") {
             statusendringServiceMedMockDB.handterStatusendring(opprettKafkaMelding(sykmeldingId.toString(), "fnr", StatusEventDTO.AVBRUTT))
 
-            verify(exactly = 1) { databaseMock.finnOgSlettSykmelding(any()) }
+            verify(exactly = 1) { databaseMock.slettEgenmeldtSykmelding(any()) }
         }
     }
 

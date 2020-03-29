@@ -129,7 +129,6 @@ fun createListener(action: suspend CoroutineScope.() -> Unit): Job =
             action()
         } catch (ex: Exception) {
             log.error("Noe gikk galt", ex.cause)
-            throw ex
         }
     }
 
