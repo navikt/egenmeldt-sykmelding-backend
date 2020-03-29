@@ -1,6 +1,4 @@
 package no.nav.syfo.sykmelding.mapping
-
-import java.time.LocalDateTime
 import javax.xml.bind.Marshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
@@ -10,6 +8,8 @@ import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.fellesformatJaxBContext
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 const val dummyTssIdent = "80000821845"
 
@@ -38,7 +38,7 @@ fun opprettReceivedSykmelding(pasient: Pasient, sykmeldingId: String, fellesform
         legekontorOrgName = "NAV",
         legekontorHerId = null,
         legekontorReshId = null,
-        mottattDato = LocalDateTime.now(),
+        mottattDato = OffsetDateTime.now(ZoneOffset.UTC).toLocalDateTime(),
         rulesetVersion = healthInformation.regelSettVersjon,
         fellesformat = fellesformatMarshaller.toString(fellesformat),
         tssid = dummyTssIdent
