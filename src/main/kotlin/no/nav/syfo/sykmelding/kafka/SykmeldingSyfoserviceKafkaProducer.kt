@@ -8,7 +8,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 
 class SykmeldingSyfoserviceKafkaProducer(private val kafkaProducer: KafkaProducer<String, SykmeldingSyfoserviceKafkaMessage>, private val topic: String) {
     fun publishSykmeldingToKafka(sykmeldingId: String, helseOpplysningerArbeidsuforhet: HelseOpplysningerArbeidsuforhet) {
-        kafkaProducer.send(ProducerRecord(topic, SykmeldingSyfoserviceKafkaMessage(
+        kafkaProducer.send(ProducerRecord(topic, sykmeldingId, SykmeldingSyfoserviceKafkaMessage(
                 metadata = KafkaMessageMetadata(sykmeldingId),
                 helseopplysninger = helseOpplysningerArbeidsuforhet
         )))
