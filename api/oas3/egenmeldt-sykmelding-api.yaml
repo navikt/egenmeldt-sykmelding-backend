@@ -69,8 +69,18 @@ components:
                 items:
                   type: object
                   properties:
-                    message:
+                    description:
                       type: string
+                    errorCode:
+                      type: string
+                      enum: [TOM_ER_FOR_FOM,
+                             FOR_LANG_PERIODE,
+                             FOM_BEFORE_VALID_DATE,
+                             OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER,
+                             HAR_ALLEREDE_EGENMELDT_SYKMELDING,
+                             PERSON_NOT_FOUND,
+                             AKTOR_NOT_FOUND,
+                             FORBIDDEN]
   schemas:
     Arbeidsforhold:
       type: object
