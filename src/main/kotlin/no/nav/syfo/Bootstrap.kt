@@ -12,7 +12,13 @@ import io.ktor.client.features.json.JsonFeature
 import io.ktor.util.KtorExperimentalAPI
 import io.prometheus.client.hotspot.DefaultExports
 import java.net.URL
+import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import no.nav.syfo.application.ApplicationServer
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.createApplicationEngine
@@ -23,12 +29,15 @@ import no.nav.syfo.arbeidsgivere.service.ArbeidsgiverService
 import no.nav.syfo.client.StsOidcClient
 import no.nav.syfo.db.Database
 import no.nav.syfo.db.VaultCredentialService
+import no.nav.syfo.model.sykmeldingstatus.SykmeldingStatusKafkaMessageDTO
 import no.nav.syfo.pdl.client.PdlClient
 import no.nav.syfo.pdl.service.PdlPersonService
+import no.nav.syfo.status.service.StatusendringService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
 import no.nav.syfo.sykmelding.util.KafkaClients
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -78,10 +87,14 @@ fun main() {
     val pdlService = PdlPersonService(pdlClient, stsOidcClient)
     val syfosmregisterSykmeldingClient = SyfosmregisterSykmeldingClient(httpClient, env.syfosmregisterUrl)
     val syfoserviceKafkaProducer = kafkaClients.syfoserviceKafkaProducer
+    val kafkaStatusConsumer = kafkaClients.kafkaStatusConsumer
+    val database = Database(env, VaultCredentialService())
+
+    val statusendringService = StatusendringService(database)
 
     val egenmeldtSykmeldingService = EgenmeldtSykmeldingService(
             oppdaterTopicsService,
-            Database(env, VaultCredentialService()),
+            database,
             pdlService,
             syfoserviceKafkaProducer,
             syfosmregisterSykmeldingClient)
@@ -99,4 +112,49 @@ fun main() {
     val applicationServer = ApplicationServer(applicationEngine, applicationState)
     applicationServer.start()
     applicationState.ready = true
+
+    launchListeners(
+        applicationState,
+        kafkaStatusConsumer,
+        statusendringService
+    )
+}
+
+fun createListener(action: suspend CoroutineScope.() -> Unit): Job =
+    GlobalScope.launch {
+        try {
+            action()
+        } catch (ex: Exception) {
+            log.error("Noe gikk galt", ex.cause)
+        }
+    }
+
+@KtorExperimentalAPI
+fun launchListeners(
+    applicationState: ApplicationState,
+    kafkaStatusConsumer: KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>,
+    statusendringService: StatusendringService
+) {
+    createListener() {
+        handleStatusendring(applicationState, kafkaStatusConsumer, statusendringService)
+    }
+}
+
+suspend fun handleStatusendring(
+    applicationState: ApplicationState,
+    kafkaStatusConsumer: KafkaConsumer<String, SykmeldingStatusKafkaMessageDTO>,
+    statusendringService: StatusendringService
+) {
+    while (applicationState.ready) {
+        kafkaStatusConsumer.poll(Duration.ofMillis(0)).forEach {
+            val sykmeldingStatusKafkaMessageDTO: SykmeldingStatusKafkaMessageDTO = it.value()
+            try {
+                statusendringService.handterStatusendring(sykmeldingStatusKafkaMessageDTO)
+            } catch (e: Exception) {
+                log.error("Noe gikk galt ved behandling av statusendring for sykmelding med id {}", sykmeldingStatusKafkaMessageDTO.kafkaMetadata.sykmeldingId)
+                throw e
+            }
+        }
+        delay(100)
+    }
 }

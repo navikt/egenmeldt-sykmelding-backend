@@ -2,11 +2,13 @@ package no.nav.syfo.sykmelding.db
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import java.sql.Connection
 import java.sql.Date
 import java.sql.ResultSet
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
+import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import org.postgresql.util.PGobject
@@ -80,10 +82,10 @@ fun DatabaseInterface.sykmeldingErAlleredeRegistrertForBruker(fnr: String): Bool
         }
     }
 
-fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
+fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding? {
     connection.use { connection ->
 
-        val query: String =
+        val query =
                 """
                     SELECT * 
                     FROM egenmeldt_sykmelding 
@@ -91,8 +93,42 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(id: UUID): EgenmeldtSykmelding {
 
         connection.prepareStatement(query).use {
             it.setObject(1, id)
-            return it.executeQuery().toList { tilEgenmeldtSykmelding() }.first()
+            return it.executeQuery().toList { tilEgenmeldtSykmelding() }.firstOrNull()
         }
+    }
+}
+
+fun DatabaseInterface.finnOgSlettSykmelding(id: UUID) {
+    connection.use { connection ->
+        if (connection.finnesEgenmeldtSykmelding(id)) {
+            connection.slettEgenmeldtSykmelding(id)
+            connection.commit()
+        }
+    }
+}
+
+private fun Connection.finnesEgenmeldtSykmelding(id: UUID): Boolean =
+    prepareStatement(
+        """
+               SELECT 1 
+               FROM egenmeldt_sykmelding 
+               WHERE id = ?;
+            """
+    ).use {
+        it.setObject(1, id)
+        it.executeQuery().next()
+    }
+
+private fun Connection.slettEgenmeldtSykmelding(id: UUID) {
+    log.info("Sletter innslag for egenmeldt sykmelding med id: {}", id.toString())
+    this.prepareStatement(
+        """
+                DELETE FROM egenmeldt_sykmelding
+                WHERE id=?;
+            """
+    ).use {
+        it.setObject(1, id)
+        it.execute()
     }
 }
 
