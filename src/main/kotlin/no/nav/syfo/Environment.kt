@@ -18,7 +18,8 @@ data class Environment(
     val sm2013AutomaticHandlingTopic: String = getEnvVar("KAFKA_SM2013_AUTOMATIC_TOPIC", "privat-syfo-sm2013-automatiskBehandling"),
     val pdlGraphqlPath: String = getEnvVar("PDL_GRAPHQL_PATH"),
     val syfosmregisterUrl: String = getEnvVar("SYFOSMREGISTER_URL", "http://syfosmregister"),
-    val syfoserviceKafkaTopic: String = getEnvVar("SYFOSERVICE_KAFKA_TOPIC", "privat-syfo-syfoservice-mq")
+    val syfoserviceKafkaTopic: String = getEnvVar("SYFOSERVICE_KAFKA_TOPIC", "privat-syfo-syfoservice-mq"),
+    val sykmeldingStatusTopic: String = getEnvVar("KAFKA_SYKMELDING_STATUS_TOPIC", "aapen-syfo-sykmeldingstatus-leesah-v1")
 ) : KafkaConfig
 
 data class VaultSecrets(
