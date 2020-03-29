@@ -37,6 +37,7 @@ import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
 import no.nav.syfo.sykmelding.service.OppdaterTopicsService
 import no.nav.syfo.sykmelding.util.KafkaClients
+import no.nav.syfo.vault.RenewVaultService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -88,7 +89,8 @@ fun main() {
     val syfosmregisterSykmeldingClient = SyfosmregisterSykmeldingClient(httpClient, env.syfosmregisterUrl)
     val syfoserviceKafkaProducer = kafkaClients.syfoserviceKafkaProducer
     val kafkaStatusConsumer = kafkaClients.kafkaStatusConsumer
-    val database = Database(env, VaultCredentialService())
+    val vaultCredentialService = VaultCredentialService()
+    val database = Database(env, vaultCredentialService)
 
     val statusendringService = StatusendringService(database)
 
@@ -113,6 +115,7 @@ fun main() {
     applicationServer.start()
     applicationState.ready = true
 
+    RenewVaultService(vaultCredentialService, applicationState).startRenewTasks()
     launchListeners(
         applicationState,
         kafkaStatusConsumer,
