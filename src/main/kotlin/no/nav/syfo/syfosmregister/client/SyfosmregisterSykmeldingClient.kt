@@ -19,6 +19,6 @@ class SyfosmregisterSykmeldingClient(private val httpClient: HttpClient, private
     }
 
     fun getRequestUrl(fom: LocalDate, tom: LocalDate?): String {
-        return "$baseUrl/api/v2/sykmeldinger?fom=$fom" + tom?.let { "&tom=$it" }.orEmpty()
+        return "$baseUrl/api/v2/sykmeldinger?exclude=AVBRUTT&fom=$fom" + tom?.let { "&tom=$it" }.orEmpty()
     }
 }
