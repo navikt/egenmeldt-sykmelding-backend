@@ -56,7 +56,6 @@ Creating a docker image should be as simple as `docker build -t egenmeldt-sykmel
 `docker run --rm -it -p 8080:8080 egenmeldt-sykmelding-backend`
 
 ### Access to the Postgres database
-
 For utfyllende dokumentasjon se [Postgres i NAV](https://github.com/navikt/utvikling/blob/master/PostgreSQL.md)
 
 #### Tldr
