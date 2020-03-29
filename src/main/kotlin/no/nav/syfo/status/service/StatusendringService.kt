@@ -14,8 +14,6 @@ class StatusendringService(private val database: DatabaseInterface) {
             val sykmeldingId = sykmeldingStatusKafkaMessageDTO.kafkaMetadata.sykmeldingId
             log.info("Har mottatt statusendring for avbrutt sykmelding med id {}", sykmeldingId)
             database.slettEgenmeldtSykmelding(UUID.fromString(sykmeldingId))
-        } else {
-            log.info("Ignorerer statusendring for sykmelding {}, status {}", sykmeldingStatusKafkaMessageDTO.kafkaMetadata.sykmeldingId, sykmeldingStatusKafkaMessageDTO.event.statusEvent.name)
         }
     }
 }
