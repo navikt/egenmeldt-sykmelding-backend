@@ -29,7 +29,7 @@ class PdlServiceTest : Spek({
     coEvery { stsOidcClient.oidcToken() } returns OidcToken("Token", "JWT", 1L)
     describe("PdlService") {
         it("hente person fra pdl uten fortrolig dresse") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse("UGRADERT")
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(listOf("UGRADERT"))
             runBlocking {
                 val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual false
@@ -39,22 +39,36 @@ class PdlServiceTest : Spek({
                 person.aktorId shouldEqual "987654321"
             }
         }
+        it("skal gå gjennom om adressebeskyttelse er null") {
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(null)
+            runBlocking {
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
+                person.fortroligAdresse shouldEqual false
+            }
+        }
+        it("skal gå gjennom om adressebeskyttelse er null") {
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(emptyList())
+            runBlocking {
+                val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
+                person.fortroligAdresse shouldEqual false
+            }
+        }
         it("hente person fra pdl fortrolig dresse") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse("FORTROLIG")
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(listOf("FORTROLIG"))
             runBlocking {
                 val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual false
             }
         }
         it("hente person fra pdl strengt fortrolig dresse") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(STRENGT_FORTROLIG)
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(listOf(STRENGT_FORTROLIG))
             runBlocking {
                 val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual true
             }
         }
         it("hente person fra pdl strengt fortrolig dresse") {
-            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(STRENGT_FORTROLIG_UTLAND)
+            coEvery { pdlClient.getPerson(any(), any(), any()) } returns getPdlResponse(listOf(STRENGT_FORTROLIG_UTLAND))
             runBlocking {
                 val person = pdlService.getPersonOgDiskresjonskode("01245678901", "Bearer token", "callId")
                 person.fortroligAdresse shouldEqual true
@@ -100,19 +114,17 @@ class PdlServiceTest : Spek({
             exception.message shouldEqual "Fant ikke navn på person i PDL"
         }
 
-        it("Skal feile når gradering ikke finnes") {
+        it("Skal ikke feile når gradering ikke finnes") {
             coEvery { pdlClient.getPerson(any(), any(), any()) } returns GetPersonResponse(ResponseData(hentPerson = HentPerson(
                 navn = listOf(Navn("fornavn", "mellomnavn", "etternavn")),
                 adressebeskyttelse = emptyList()
             ),
                 hentIdenter = Identliste(listOf(IdentInformasjon(ident = "987654321")))
             ))
-            val exception = assertFailsWith<PersonNotFoundInPdl> {
-                runBlocking {
-                    pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
-                }
+
+            runBlocking {
+                pdlService.getPersonOgDiskresjonskode("123", "Bearer token", "callId")
             }
-            exception.message shouldEqual "Fant ikke diskresjonskode i PDL"
         }
 
         it("Skal feile når aktørid ikke finnes") {
