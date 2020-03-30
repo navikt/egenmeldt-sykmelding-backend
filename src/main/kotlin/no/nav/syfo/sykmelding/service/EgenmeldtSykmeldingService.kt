@@ -95,7 +95,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         if (fom.isBefore(tidligsteGyldigeFom)) {
             log.warn("Egenmeldt sykmelding er ikke tilgjengelig før {}", tidligsteGyldigeFom)
-            throw ForTidligsteFomException("Egenmeldt sykmelding er ikke tilgjengelig før")
+            throw ForTidligsteFomException("Egenmeldt sykmelding er ikke tilgjengelig før 1. mars 2020")
         }
         if (tom.isAfter(fom.plusDays(maxAntallDagerSykmeldt.toLong()))) {
             log.warn("Egenmeldt sykmelding kan ikke være mer enn {} dager", maxAntallDagerSykmeldt)
