@@ -21,13 +21,13 @@ fun StatusPages.Configuration.setUpSykmeldingExceptionHandler() {
         call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("FOR_LANG_PERIODE", it.message))))
     }
     exception<ForTidligsteFomException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("FOM_BEFORE_VALID_DATE", it.message))))
+        call.respond(HttpStatusCode.Accepted, ErrorResponse(listOf(EgenmeldtSykmeldingError("FOM_BEFORE_VALID_DATE", it.message))))
     }
     exception<OverlappMedEksisterendeSykmeldingException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER", it.message))))
+        call.respond(HttpStatusCode.Accepted, ErrorResponse(listOf(EgenmeldtSykmeldingError("OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER", it.message))))
     }
     exception<SykmeldingAlreadyExistsException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("HAR_ALLEREDE_EGENMELDT_SYKMELDING", it.message))))
+        call.respond(HttpStatusCode.Accepted, ErrorResponse(listOf(EgenmeldtSykmeldingError("HAR_ALLEREDE_EGENMELDT_SYKMELDING", it.message))))
     }
     exception<PersonNotFoundInPdl> {
         call.respond(HttpStatusCode.NotFound, ErrorResponse(listOf(EgenmeldtSykmeldingError("PERSON_NOT_FOUND", it.message))))

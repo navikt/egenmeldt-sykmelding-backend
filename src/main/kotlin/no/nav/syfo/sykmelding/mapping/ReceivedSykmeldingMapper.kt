@@ -1,4 +1,6 @@
 package no.nav.syfo.sykmelding.mapping
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import javax.xml.bind.Marshaller
 import no.nav.helse.eiFellesformat.XMLEIFellesformat
 import no.nav.helse.msgHead.XMLMsgHead
@@ -8,8 +10,6 @@ import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 import no.nav.syfo.sykmelding.util.fellesformatJaxBContext
 import no.nav.syfo.sykmelding.util.get
 import no.nav.syfo.sykmelding.util.toString
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 
 const val dummyTssIdent = "80000821845"
 
