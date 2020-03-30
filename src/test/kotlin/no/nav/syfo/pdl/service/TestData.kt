@@ -8,10 +8,10 @@ import no.nav.syfo.pdl.client.model.Identliste
 import no.nav.syfo.pdl.client.model.Navn
 import no.nav.syfo.pdl.client.model.ResponseData
 
-fun getPdlResponse(adresseGradering: String): GetPersonResponse {
+fun getPdlResponse(adresseGradering: List<String>?): GetPersonResponse {
     return GetPersonResponse(ResponseData(
             hentPerson = HentPerson(listOf(Navn("fornavn", null, "etternavn")),
-                    adressebeskyttelse = listOf(Adressebeskyttelse(adresseGradering))),
+                    adressebeskyttelse = adresseGradering?.map { Adressebeskyttelse(it) }),
             hentIdenter = Identliste(listOf(IdentInformasjon(ident = "987654321")))
     ))
 }

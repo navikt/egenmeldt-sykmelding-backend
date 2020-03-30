@@ -26,21 +26,17 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
             log.error("Fant ikke navn på person i PDL {}", callId)
             throw PersonNotFoundInPdl("Fant ikke navn på person i PDL")
         }
-        if (pdlResponse.data.hentPerson.adressebeskyttelse.isNullOrEmpty()) {
-            log.error("Fant ikke diskresjonskode i PDL {}", callId)
-            throw PersonNotFoundInPdl("Fant ikke diskresjonskode i PDL")
-        }
         if (pdlResponse.data.hentIdenter == null || pdlResponse.data.hentIdenter.identer.isNullOrEmpty()) {
             log.error("Fant ikke aktørid i PDL {}", callId)
             throw AktoerNotFoundException("Fant ikke aktørId i PDL")
         }
-        return PdlPerson(getNavn(pdlResponse.data.hentPerson.navn[0]), hasFortroligAdresse(pdlResponse.data.hentPerson.adressebeskyttelse[0]), pdlResponse.data.hentIdenter.identer.first().ident)
+        return PdlPerson(getNavn(pdlResponse.data.hentPerson.navn[0]), hasFortroligAdresse(pdlResponse.data.hentPerson.adressebeskyttelse), pdlResponse.data.hentIdenter.identer.first().ident)
     }
 
-    private fun hasFortroligAdresse(adressebeskyttelse: Adressebeskyttelse): Boolean {
-        return when (adressebeskyttelse.gradering) {
-            STRENGT_FORTROLIG_UTLAND -> true
-            STRENGT_FORTROLIG -> true
+    private fun hasFortroligAdresse(adressebeskyttelse: List<Adressebeskyttelse>?): Boolean {
+        return when {
+            adressebeskyttelse.isNullOrEmpty() -> false
+            adressebeskyttelse.any { it.gradering == STRENGT_FORTROLIG_UTLAND || it.gradering == STRENGT_FORTROLIG}  -> true
             else -> false
         }
     }
