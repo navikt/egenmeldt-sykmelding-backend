@@ -63,7 +63,7 @@ class StatusendringServiceTest : Spek({
             testDB.finnEgenmeldtSykmelding(sykmeldingId) shouldEqual null
         }
         it("Skal ikke feile hvis det ikke er noen sykmelding å slette for statusevent AVBRUTT") {
-            statusendringService.handterStatusendring(opprettKafkaMelding(sykmeldingId.toString(), "annetfnr", StatusEventDTO.AVBRUTT))
+            statusendringService.handterStatusendring(opprettKafkaMelding(UUID.randomUUID().toString(), "annetfnr", StatusEventDTO.AVBRUTT))
         }
     }
 })
