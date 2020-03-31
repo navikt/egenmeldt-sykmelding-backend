@@ -76,7 +76,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             periode = Periode(
                                     fom = LocalDate.now(),
                                     tom = LocalDate.now().plusDays(4)),
-                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                            egenSykdom = false
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
@@ -95,7 +96,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             periode = Periode(
                                     fom = LocalDate.now(),
                                     tom = LocalDate.now().minusDays(4)),
-                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                            egenSykdom = true
                     )
                     setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
                     addHeader("Content-Type", "application/json")
@@ -127,7 +129,8 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     val requestBody = EgenmeldtSykmeldingRequest(Periode(
                             LocalDate.now(),
                             LocalDate.now()),
-                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+                            arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                            egenSykdom = true
                     )
                     setBody(getObjectMapper().writeValueAsString(requestBody))
                     addHeader("Content-Type", "application/json")
@@ -144,7 +147,9 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                     val requestBody = EgenmeldtSykmeldingRequest(Periode(
                             LocalDate.now(),
                             LocalDate.now()),
+                            true,
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5))
+
                     )
                     setBody(getObjectMapper().writeValueAsString(requestBody))
                     addHeader("Content-Type", "application/json")

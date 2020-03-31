@@ -59,6 +59,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         Periode(
                                 fom = LocalDate.now(),
                                 tom = LocalDate.now().plusDays(1)),
+                        true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
@@ -70,6 +71,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         Periode(
                             fom = tidligsteGyldigeFom.minusDays(2),
                             tom = tidligsteGyldigeFom.plusDays(7)),
+                            true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
@@ -81,6 +83,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                     Periode(
                         fom = tidligsteGyldigeFom,
                         tom = tidligsteGyldigeFom.plusDays(7)),
+                        true,
                     listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
@@ -92,6 +95,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                         Periode(
                             fom = LocalDate.now(),
                             tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong() + 1)),
+                            true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
@@ -103,6 +107,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                     Periode(
                         fom = LocalDate.now(),
                         tom = LocalDate.now().plusDays(maxAntallDagerSykmeldt.toLong())),
+                        true,
                     listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
@@ -115,6 +120,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                                     fom = LocalDate.now(),
                                     tom = LocalDate.now().minusDays(1)
                             ),
+                            true,
                             listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
@@ -129,6 +135,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             fom = LocalDate.now().minusDays(1),
                             tom = LocalDate.now()
                         ),
+                            true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
                 }
@@ -147,6 +154,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                             fom = LocalDate.now().minusDays(1),
                             tom = LocalDate.now()
                         ),
+                            true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
 
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)

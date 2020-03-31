@@ -22,8 +22,9 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
                         pasientfnr, 
                         fom, 
                         tom, 
-                        arbeidsforhold) 
-                    VALUES (?, ?, ?, ?, ?);
+                        arbeidsforhold,
+                        egenSykdom) 
+                    VALUES (?, ?, ?, ?, ?, ?);
                 """
 
         var i = 1
@@ -37,7 +38,7 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
                 it.type = "json"
                 it.value = jacksonObjectMapper().writeValueAsString(egenmeldtSykmelding.arbeidsforhold)
             })
-
+            it.setBoolean(i++, egenmeldtSykmelding.egenSykdom)
             it.execute()
         }
 
@@ -135,5 +136,6 @@ fun ResultSet.tilEgenmeldtSykmelding(): EgenmeldtSykmelding {
             arbeidsforhold = jacksonObjectMapper().readValue(getString("arbeidsforhold")),
             periode = Periode(
                     getDate("fom").toLocalDate(),
-                    getDate("tom").toLocalDate()))
+                    getDate("tom").toLocalDate()),
+            egenSykdom = getBoolean("egenSykdom"))
 }
