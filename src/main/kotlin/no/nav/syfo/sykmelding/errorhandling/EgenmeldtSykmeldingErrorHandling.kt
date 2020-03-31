@@ -4,6 +4,7 @@ import io.ktor.application.call
 import io.ktor.features.StatusPages
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
+import no.nav.syfo.metrics.ERROR_HIT_COUNTER
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
 import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
@@ -13,29 +14,46 @@ import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSy
 import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 
+private val TOM_ER_FOR_FOM = "TOM_ER_FOR_FOM"
+private val FOR_LANG_PERIODE = "FOR_LANG_PERIODE"
+private val FOM_BEFORE_VALID_DATE = "FOM_BEFORE_VALID_DATE"
+private val OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER = "OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER"
+private val HAR_ALLEREDE_EGENMELDT_SYKMELDING = "HAR_ALLEREDE_EGENMELDT_SYKMELDING"
+private val PERSON_NOT_FOUND = "PERSON_NOT_FOUND"
+private val AKTOR_NOT_FOUND = "AKTOR_NOT_FOUND"
+private val FORBIDDEN = "FORBIDDEN"
+
 fun StatusPages.Configuration.setUpSykmeldingExceptionHandler() {
     exception<TomBeforeFomDateException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("TOM_ER_FOR_FOM", it.message))))
+        ERROR_HIT_COUNTER.labels(TOM_ER_FOR_FOM).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(TOM_ER_FOR_FOM, it.message))))
     }
     exception<ForLangPeriodeException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("FOR_LANG_PERIODE", it.message))))
+        ERROR_HIT_COUNTER.labels(FOR_LANG_PERIODE).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(FOR_LANG_PERIODE, it.message))))
     }
     exception<ForTidligsteFomException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("FOM_BEFORE_VALID_DATE", it.message))))
+        ERROR_HIT_COUNTER.labels(FOM_BEFORE_VALID_DATE).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(FOM_BEFORE_VALID_DATE, it.message))))
     }
     exception<OverlappMedEksisterendeSykmeldingException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER", it.message))))
+        ERROR_HIT_COUNTER.labels(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER, it.message))))
     }
     exception<SykmeldingAlreadyExistsException> {
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError("HAR_ALLEREDE_EGENMELDT_SYKMELDING", it.message))))
+        ERROR_HIT_COUNTER.labels(HAR_ALLEREDE_EGENMELDT_SYKMELDING).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(HAR_ALLEREDE_EGENMELDT_SYKMELDING, it.message))))
     }
     exception<PersonNotFoundInPdl> {
-        call.respond(HttpStatusCode.NotFound, ErrorResponse(listOf(EgenmeldtSykmeldingError("PERSON_NOT_FOUND", it.message))))
+        ERROR_HIT_COUNTER.labels(PERSON_NOT_FOUND).inc()
+        call.respond(HttpStatusCode.NotFound, ErrorResponse(listOf(EgenmeldtSykmeldingError(PERSON_NOT_FOUND, it.message))))
     }
     exception<AktoerNotFoundException> {
-        call.respond(HttpStatusCode.NotFound, ErrorResponse(listOf(EgenmeldtSykmeldingError("AKTOR_NOT_FOUND", it.message))))
+        ERROR_HIT_COUNTER.labels(AKTOR_NOT_FOUND).inc()
+        call.respond(HttpStatusCode.NotFound, ErrorResponse(listOf(EgenmeldtSykmeldingError(AKTOR_NOT_FOUND, it.message))))
     }
     exception<IkkeTilgangException> {
-        call.respond(HttpStatusCode.Forbidden, ErrorResponse(listOf(EgenmeldtSykmeldingError("FORBIDDEN", it.message))))
+        ERROR_HIT_COUNTER.labels(FORBIDDEN).inc()
+        call.respond(HttpStatusCode.Forbidden, ErrorResponse(listOf(EgenmeldtSykmeldingError(FORBIDDEN, it.message))))
     }
 }

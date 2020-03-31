@@ -5,9 +5,7 @@ import java.time.LocalDate
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.log
-import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
-import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
@@ -86,7 +84,6 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     suspend fun validerEgenmeldtSykmelding(fom: LocalDate, tom: LocalDate, harFortroligAdresse: Boolean, fnr: String, userToken: String, callId: String) {
         if (tom.isBefore(fom)) {
             log.warn("Tom-dato er før fom-dato for callId {}", callId)
-            EGENMELDT_SYKMELDING_ERROR_TOM_BEFORE_FOM_COUNTER.inc()
             throw TomBeforeFomDateException("Tom-dato er før fom-dato")
         }
         if (harFortroligAdresse) {
@@ -103,7 +100,6 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         if (database.sykmeldingErAlleredeRegistrertForBruker(fnr = fnr)) {
             log.warn("Det finnes en egenmeldt sykmelding fra før for samme bruker, {}", callId)
-            EGENMELDT_SYKMELDING_ALREADY_EXISTS_COUNTER.inc()
             throw SykmeldingAlreadyExistsException("Du kan kun benytte egenmeldt sykmelding én gang")
         }
         if (harOverlappendeSykmeldingerIRegisteret(token = userToken, fom = fom, tom = tom)) {
