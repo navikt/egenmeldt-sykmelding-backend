@@ -88,7 +88,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         if (harFortroligAdresse) {
             log.warn("Bruker har ikke tilgang til tjenesten, callId {}", callId)
-            throw IkkeTilgangException("Bruker har ikke tilgang til tjenesten")
+            throw IkkeTilgangException("Du har dessverre ikke tilgang til tjenesten")
         }
         if (fom.isBefore(tidligsteGyldigeFom)) {
             log.warn("Egenmeldt sykmelding er ikke tilgjengelig før {}", tidligsteGyldigeFom)
@@ -100,11 +100,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
         }
         if (database.sykmeldingErAlleredeRegistrertForBruker(fnr = fnr)) {
             log.warn("Det finnes en egenmeldt sykmelding fra før for samme bruker, {}", callId)
-            throw SykmeldingAlreadyExistsException("Du kan kun benytte egenmeldt sykmelding én gang")
+            throw SykmeldingAlreadyExistsException("Du kan kun benytte egenmelding én gang")
         }
         if (harOverlappendeSykmeldingerIRegisteret(token = userToken, fom = fom, tom = tom)) {
             log.warn("Bruker har allerede sykmeldinger som overlapper med valgt periode {}", callId)
-            throw OverlappMedEksisterendeSykmeldingException("Bruker har allerede sykmeldinger som overlapper med valgt periode")
+            throw OverlappMedEksisterendeSykmeldingException("Du har allerede levert sykmelding, da skal du ikke bruke denne egenmeldingen")
         }
     }
 
