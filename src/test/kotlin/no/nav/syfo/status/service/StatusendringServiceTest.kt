@@ -55,7 +55,7 @@ class StatusendringServiceTest : Spek({
     describe("Test av håndtering av statusendringer mot database") {
         val statusendringService = StatusendringService(testDB)
         it("Skal slette sykmelding hvis den finnes i databasen") {
-            testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(sykmeldingId, "fnr", null, Periode(LocalDate.now().minusDays(5), LocalDate.now().plusDays(11))))
+            testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(sykmeldingId, "fnr", null, Periode(LocalDate.now().minusDays(5), LocalDate.now().plusDays(11)), false))
             testDB.finnEgenmeldtSykmelding(sykmeldingId) shouldNotBe null
 
             statusendringService.handterStatusendring(opprettKafkaMelding(sykmeldingId.toString(), "fnr", StatusEventDTO.AVBRUTT))

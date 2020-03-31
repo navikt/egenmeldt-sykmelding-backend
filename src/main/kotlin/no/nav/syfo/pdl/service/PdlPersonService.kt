@@ -36,7 +36,7 @@ class PdlPersonService(private val pdlClient: PdlClient, val stsOidcClient: StsO
     private fun hasFortroligAdresse(adressebeskyttelse: List<Adressebeskyttelse>?): Boolean {
         return when {
             adressebeskyttelse.isNullOrEmpty() -> false
-            adressebeskyttelse.any { it.gradering == STRENGT_FORTROLIG_UTLAND || it.gradering == STRENGT_FORTROLIG}  -> true
+            adressebeskyttelse.any { it.gradering == STRENGT_FORTROLIG_UTLAND || it.gradering == STRENGT_FORTROLIG } -> true
             else -> false
         }
     }

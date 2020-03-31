@@ -59,10 +59,10 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
 
         val antallArbeidsgivere = sykmeldingRequest.arbeidsforhold.size
         if (sykmeldingRequest.arbeidsforhold.isEmpty()) {
-            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode), pasient, antallArbeidsgivere, callId)
+            registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), fnr, null, sykmeldingRequest.periode, sykmeldingRequest.egenSykdom), pasient, antallArbeidsgivere, callId)
         } else {
             val list = sykmeldingRequest.arbeidsforhold.map {
-                EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode)
+                EgenmeldtSykmelding(UUID.randomUUID(), fnr, it, sykmeldingRequest.periode, sykmeldingRequest.egenSykdom)
             }
             log.info("Oppretter {} sykmeldinger {}", list.size, callId)
             for (egenmeldtSykmelding in list) {

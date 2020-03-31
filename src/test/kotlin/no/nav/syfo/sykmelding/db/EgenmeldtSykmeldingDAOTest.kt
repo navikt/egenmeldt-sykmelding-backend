@@ -30,7 +30,8 @@ class EgenmeldtSykmeldingDAOTest : Spek({
         val egenmeldtSykmelding = EgenmeldtSykmelding(UUID.randomUUID(),
                 "12345678912",
                 Arbeidsforhold("arbeidsgiver", "123456789", 50.5),
-                Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
+                Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)),
+                false)
 
         it("Should not overlap when not exists") {
             assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
@@ -38,6 +39,18 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
         it("Should insert") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+        }
+
+        it("Should insert correct with egenSykdom = false") {
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+            sykmelding.egenSykdom shouldEqual false
+        }
+
+        it("Should insert correct with egenSykdom = true") {
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding.copy(egenSykdom = true))
+            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+            sykmelding.egenSykdom shouldEqual true
         }
 
         it("Should overlap after insert") {
@@ -48,9 +61,10 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
         it("Should allow arbeidsforhold = null") {
             val egenmeldtSykmeldingUtenArbeidsforhold = EgenmeldtSykmelding(UUID.randomUUID(),
-                "12345678912",
-                null,
-                Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)))
+                    "12345678912",
+                    null,
+                    Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)),
+                    false)
 
             assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmeldingUtenArbeidsforhold))
         }
@@ -78,7 +92,7 @@ class EgenmeldtSykmeldingDAOTest : Spek({
         }
 
         it("sykmeldingErAlleredeRegistrert skal returnere true når en lik sykmelding er registrert fra før") {
-            testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), "fnr", null, Periode(LocalDate.now().minusDays(10), LocalDate.now())))
+            testDB.registrerEgenmeldtSykmelding(EgenmeldtSykmelding(UUID.randomUUID(), "fnr", null, Periode(LocalDate.now().minusDays(10), LocalDate.now()), false))
 
             testDB.sykmeldingErAlleredeRegistrertForBruker("fnr") shouldEqual true
         }

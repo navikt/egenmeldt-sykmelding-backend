@@ -102,9 +102,14 @@ components:
             80.5
     EgenmeldtSykmelding:
       type: object
+      required:
+        - periode
+        - egenSykdom
       properties:
         periode:
           $ref: '#/components/schemas/EgenmeldtPeriode'
+        egenSykdom:
+          type: boolean
         arbeidsforhold:
           type: array
           items:
