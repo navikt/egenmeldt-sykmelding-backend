@@ -73,12 +73,10 @@ fun createApplicationEngine(
 
         routing {
             registerNaisApi(applicationState)
-            if (env.cluster == "dev-fss") {
-                setupSwaggerDocApi()
-                authenticate {
-                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
-                    registrerArbeidsgiverApi(arbeidsgiverService)
-                }
+            setupSwaggerDocApi()
+            authenticate {
+                registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                registrerArbeidsgiverApi(arbeidsgiverService)
             }
         }
         intercept(ApplicationCallPipeline.Monitoring, monitorHttpRequests())
