@@ -90,7 +90,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 }
             }
 
-            it("Skal overstyre TOM") {
+            it("Skal ikke overstyre TOM") {
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
                             periode = Periode(
@@ -106,7 +106,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             subject = "12345678910",
                             issuer = "issuer")}")
                 }) {
-                    response.status() shouldEqual HttpStatusCode.Created
+                    response.status() shouldEqual HttpStatusCode.BadRequest
                 }
             }
         }

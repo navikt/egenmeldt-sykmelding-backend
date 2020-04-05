@@ -84,7 +84,7 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
     suspend fun validerEgenmeldtSykmelding(fom: LocalDate, tom: LocalDate, harFortroligAdresse: Boolean, fnr: String, userToken: String, callId: String) {
         if (tom.isBefore(fom)) {
             log.warn("Tom-dato er før fom-dato for callId {}", callId)
-            throw TomBeforeFomDateException("Tom-dato er før fom-dato")
+            throw TomBeforeFomDateException("Til-dato er tidligere enn fra-dato for egenmeldingen")
         }
         if (harFortroligAdresse) {
             log.warn("Bruker har ikke tilgang til tjenesten, callId {}", callId)
