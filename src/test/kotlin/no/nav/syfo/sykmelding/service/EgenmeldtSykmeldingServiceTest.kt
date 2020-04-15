@@ -64,7 +64,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
             }
         }
-        it("Skal feile hvis FOM er før egenmeldt sykmelding er tilgjengelig") {
+        it("Skal feile hvis FOM er før dagens dato") {
             runBlocking {
                 assertFailsWith<ForTidligsteFomException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
@@ -77,7 +77,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 }
             }
         }
-        it("Skal gå ok hvis FOM er samme dag som egenmeldt sykmelding ble tilgjengelig") {
+        it("Skal gå ok hvis FOM er dagens dato") {
             runBlocking {
                 val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                     Periode(
