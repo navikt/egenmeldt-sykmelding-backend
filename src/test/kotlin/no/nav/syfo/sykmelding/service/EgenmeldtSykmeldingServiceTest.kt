@@ -69,8 +69,8 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 assertFailsWith<ForTidligsteFomException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                         Periode(
-                            fom = tidligsteGyldigeFom.minusDays(2),
-                            tom = tidligsteGyldigeFom.plusDays(7)),
+                            fom = LocalDate.now().minusDays(1),
+                            tom = LocalDate.now().plusDays(10)),
                             true,
                         listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                     egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
@@ -81,8 +81,8 @@ class EgenmeldtSykmeldingServiceTest : Spek({
             runBlocking {
                 val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                     Periode(
-                        fom = tidligsteGyldigeFom,
-                        tom = tidligsteGyldigeFom.plusDays(7)),
+                        fom = LocalDate.now(),
+                        tom = LocalDate.now().plusDays(7)),
                         true,
                     listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)))
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(egenmeldtSykmeldingRequest, "12345678910", usertoken, callId)
@@ -151,7 +151,7 @@ class EgenmeldtSykmeldingServiceTest : Spek({
                 assertFailsWith<OverlappMedEksisterendeSykmeldingException>() {
                     val egenmeldtSykmeldingRequest = EgenmeldtSykmeldingRequest(
                         Periode(
-                            fom = LocalDate.now().minusDays(1),
+                            fom = LocalDate.now(),
                             tom = LocalDate.now()
                         ),
                             true,
