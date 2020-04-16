@@ -24,7 +24,6 @@ import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.model.Pasient
 import no.nav.syfo.sykmelding.util.extractHelseOpplysningerArbeidsuforhet
 
-val tidligsteGyldigeFom: LocalDate = LocalDate.of(2020, 3, 1)
 const val maxAntallDagerSykmeldt = 16
 
 @KtorExperimentalAPI
@@ -90,9 +89,9 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             log.warn("Bruker har ikke tilgang til tjenesten, callId {}", callId)
             throw IkkeTilgangException("Du har dessverre ikke tilgang til tjenesten")
         }
-        if (fom.isBefore(tidligsteGyldigeFom)) {
-            log.warn("Egenmeldt sykmelding er ikke tilgjengelig før {}", tidligsteGyldigeFom)
-            throw ForTidligsteFomException("Egenmeldt sykmelding er ikke tilgjengelig før 1. mars 2020")
+        if (fom.isBefore(LocalDate.now())) {
+            log.warn("Egenmelding kan ikke starte før dagens dato, fom: {} dagens dato {}", fom, LocalDate.now())
+            throw ForTidligsteFomException("Egenmelding kan ikke starte før dagens dato")
         }
         if (tom.isAfter(fom.plusDays(maxAntallDagerSykmeldt.toLong()))) {
             log.warn("Egenmeldt sykmelding kan ikke være mer enn {} dager", maxAntallDagerSykmeldt)

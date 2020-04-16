@@ -11,6 +11,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
+import java.time.LocalDate
 import java.util.UUID
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
@@ -27,20 +28,20 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
             val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
+            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgPeriode(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
             call.respond(HttpStatusCode.Created)
         }
     }
 }
 
-// Kun tilgjengelig hvis man ikke har arbeidsforhold p.t., og nøyaktig 16 dager
-fun overstyrArbeidsforholdOgTom(egenmeldtSykmeldingRequest: EgenmeldtSykmeldingRequest): EgenmeldtSykmeldingRequest {
+// Kun tilgjengelig hvis man ikke har arbeidsforhold p.t., og nøyaktig 16 dager fra dagens dato
+fun overstyrArbeidsforholdOgPeriode(egenmeldtSykmeldingRequest: EgenmeldtSykmeldingRequest): EgenmeldtSykmeldingRequest {
     val originalPeriode = egenmeldtSykmeldingRequest.periode
     return egenmeldtSykmeldingRequest.copy(
         arbeidsforhold = emptyList(),
         periode = originalPeriode.copy(
-            fom = originalPeriode.fom,
-            tom = originalPeriode.fom.plusDays(15)
+            fom = LocalDate.now(),
+            tom = LocalDate.now().plusDays(15)
         )
     )
 }

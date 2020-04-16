@@ -36,7 +36,6 @@ fun opprettFellesformat(
     arbeidsforhold: Arbeidsforhold?,
     antallArbeidsgivere: Int
 ): XMLEIFellesformat {
-    log.info("Mapper sykmelding med id {} til XML-format", sykmeldingId)
     return XMLEIFellesformat().apply {
         any.add(XMLMsgHead().apply {
             msgInfo = XMLMsgInfo().apply {
