@@ -10,6 +10,7 @@ import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import no.nav.syfo.sykmelding.util.TestDB
 import no.nav.syfo.sykmelding.util.dropData
+import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldEqual
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.specification.describe
@@ -34,7 +35,7 @@ class EgenmeldtSykmeldingDAOTest : Spek({
                 false)
 
         it("Should not overlap when not exists") {
-            assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
+            assertFalse(testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom, egenmeldtSykmelding.periode.fom))
         }
 
         it("Should insert") {
@@ -43,30 +44,53 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
         it("Should insert correct with egenSykdom = false") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
-            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr).get(0)
             sykmelding.egenSykdom shouldEqual false
         }
 
         it("Should insert correct with egenSykdom = true") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding.copy(egenSykdom = true))
-            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+            val sykmelding = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr).get(0)
             sykmelding.egenSykdom shouldEqual true
         }
 
-        it("Should overlap after insert") {
+        it("Should overlap on duplicate insert") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-            assertTrue(testDB.sykmeldingOverlapper(egenmeldtSykmelding))
+            assertTrue(testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom, egenmeldtSykmelding.periode.fom))
         }
 
-        it("Should allow arbeidsforhold = null") {
-            val egenmeldtSykmeldingUtenArbeidsforhold = EgenmeldtSykmelding(UUID.randomUUID(),
+        it("Should overlap on insert within 16 days") {
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.plusDays(16), egenmeldtSykmelding.periode.tom.plusDays(16)) shouldBe true
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.minusDays(16), egenmeldtSykmelding.periode.tom.minusDays(16)) shouldBe true
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.plusDays(17), egenmeldtSykmelding.periode.tom.plusDays(17)) shouldBe false
+        }
+
+        it("Should overlap on insert within 16 days - multiple records") {
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+            val plus16 = egenmeldtSykmelding.copy(id = UUID.randomUUID(), periode = Periode(egenmeldtSykmelding.periode.tom, egenmeldtSykmelding.periode.tom.plusDays(16)));
+            testDB.registrerEgenmeldtSykmelding(plus16)
+
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.plusDays(16), egenmeldtSykmelding.periode.tom.plusDays(16)) shouldBe true
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.minusDays(16), egenmeldtSykmelding.periode.tom.minusDays(16)) shouldBe true
+
+            // Overlapper med plus16
+            testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.plusDays(17), egenmeldtSykmelding.periode.tom.plusDays(17)) shouldBe true
+        }
+
+        it("Should count number of records") {
+            testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
+            testDB.antallSykmeldingerInnenforPeriode(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.tom.minusMonths(4), egenmeldtSykmelding.periode.tom) shouldBe 1
+
+            val nySykmelding = EgenmeldtSykmelding(UUID.randomUUID(),
                     "12345678912",
                     null,
-                    Periode(fom = LocalDate.now(), tom = LocalDate.now().plusDays(1)),
-                    false)
-
-            assertFalse(testDB.sykmeldingOverlapper(egenmeldtSykmeldingUtenArbeidsforhold))
+                    Periode(fom = LocalDate.now().plusDays(20), tom = LocalDate.now().plusDays(36)),
+                    true)
+            testDB.registrerEgenmeldtSykmelding(nySykmelding)
+            testDB.antallSykmeldingerInnenforPeriode(egenmeldtSykmelding.fnr, nySykmelding.periode.tom.minusMonths(4), nySykmelding.periode.tom) shouldBe 2
         }
 
         it("Should  query by id") {
@@ -80,7 +104,7 @@ class EgenmeldtSykmeldingDAOTest : Spek({
         it("Should  query by fødselsnummer") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
 
-            val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr)
+            val res = testDB.finnEgenmeldtSykmelding(egenmeldtSykmelding.fnr).get(0)
 
             assertEquals(egenmeldtSykmelding, res)
         }

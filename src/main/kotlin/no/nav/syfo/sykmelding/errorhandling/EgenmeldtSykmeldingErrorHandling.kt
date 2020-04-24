@@ -8,17 +8,17 @@ import no.nav.syfo.metrics.ERROR_HIT_COUNTER
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
 import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeSykmeldingerException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
-import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 
 private val TOM_ER_FOR_FOM = "TOM_ER_FOR_FOM"
 private val FOR_LANG_PERIODE = "FOR_LANG_PERIODE"
 private val FOM_BEFORE_VALID_DATE = "FOM_BEFORE_VALID_DATE"
 private val OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER = "OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER"
-private val HAR_ALLEREDE_EGENMELDT_SYKMELDING = "HAR_ALLEREDE_EGENMELDT_SYKMELDING"
+private val FOR_MANGE_SYKMELDINGER_I_PERIODE = "FOR_MANGE_SYKMELDINGER_I_PERIODE"
 private val PERSON_NOT_FOUND = "PERSON_NOT_FOUND"
 private val AKTOR_NOT_FOUND = "AKTOR_NOT_FOUND"
 private val FORBIDDEN = "FORBIDDEN"
@@ -40,9 +40,9 @@ fun StatusPages.Configuration.setUpSykmeldingExceptionHandler() {
         ERROR_HIT_COUNTER.labels(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER).inc()
         call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER, it.message))))
     }
-    exception<SykmeldingAlreadyExistsException> {
-        ERROR_HIT_COUNTER.labels(HAR_ALLEREDE_EGENMELDT_SYKMELDING).inc()
-        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(HAR_ALLEREDE_EGENMELDT_SYKMELDING, it.message))))
+    exception<ForMangeSykmeldingerException> {
+        ERROR_HIT_COUNTER.labels(FOR_MANGE_SYKMELDINGER_I_PERIODE).inc()
+        call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(FOR_MANGE_SYKMELDINGER_I_PERIODE, it.message))))
     }
     exception<PersonNotFoundInPdl> {
         ERROR_HIT_COUNTER.labels(PERSON_NOT_FOUND).inc()
