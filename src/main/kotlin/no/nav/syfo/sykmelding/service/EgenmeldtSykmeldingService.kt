@@ -12,7 +12,7 @@ import no.nav.syfo.sykmelding.db.antallSykmeldingerInnenforPeriode
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
 import no.nav.syfo.sykmelding.db.sykmeldingOverlapperGrenseverdi
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
-import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeSykmeldingerException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeEgenmeldingerException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
@@ -98,9 +98,11 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             log.warn("Egenmeldt sykmelding kan ikke være mer enn {} dager", maxAntallDagerSykmeldt)
             throw ForLangPeriodeException("Egenmeldt sykmelding kan ikke være lenger enn $maxAntallDagerSykmeldt dager")
         }
-        if (database.sykmeldingOverlapperGrenseverdi(fnr, fom, tom, 16) || database.antallSykmeldingerInnenforPeriode(fnr, fom.minusMonths(4), fom) > 1) {
+        if (database.sykmeldingOverlapperGrenseverdi(fnr, fom, tom, 16) ||
+                database.antallSykmeldingerInnenforPeriode(fnr,
+                        fom = LocalDate.now().minusMonths(4), tom =  LocalDate.now()) > 1) {
             log.warn("Man kan bare ha opp til to egenmeldt sykmeldinger ila. 4 måneder, med minimum 16 dagers opphold")
-            throw ForMangeSykmeldingerException("Du kan bare ha opp til to egenmeldt sykmeldinger ila. 4 måneder, med minimum 16 dagers opphold")
+            throw ForMangeEgenmeldingerException("Du kan bare ha opp til to egenmeldinger i løpet av fire måneder, med minimum 16 dagers opphold")
         }
         if (harOverlappendeSykmeldingerIRegisteret(token = userToken, fom = fom, tom = tom)) {
             log.warn("Bruker har allerede sykmeldinger som overlapper med valgt periode {}", callId)

@@ -8,7 +8,7 @@ import no.nav.syfo.metrics.ERROR_HIT_COUNTER
 import no.nav.syfo.pdl.error.PersonNotFoundInPdl
 import no.nav.syfo.sykmelding.errorhandling.exceptions.AktoerNotFoundException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
-import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeSykmeldingerException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeEgenmeldingerException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
@@ -40,7 +40,7 @@ fun StatusPages.Configuration.setUpSykmeldingExceptionHandler() {
         ERROR_HIT_COUNTER.labels(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER).inc()
         call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(OVERLAPPER_MED_ANDRE_SYKMELDINGSPERIODER, it.message))))
     }
-    exception<ForMangeSykmeldingerException> {
+    exception<ForMangeEgenmeldingerException> {
         ERROR_HIT_COUNTER.labels(FOR_MANGE_SYKMELDINGER_I_PERIODE).inc()
         call.respond(HttpStatusCode.BadRequest, ErrorResponse(listOf(EgenmeldtSykmeldingError(FOR_MANGE_SYKMELDINGER_I_PERIODE, it.message))))
     }
