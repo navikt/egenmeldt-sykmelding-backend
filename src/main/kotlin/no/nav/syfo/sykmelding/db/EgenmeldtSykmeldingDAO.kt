@@ -96,8 +96,8 @@ fun DatabaseInterface.antallSykmeldingerInnenforPeriode(fnr: String, fom: LocalD
                 SELECT count(*) as count
                 FROM egenmeldt_sykmelding
                 WHERE pasientfnr = ?
-                AND fom between ? AND ?
-                OR tom between ? AND ?;
+                AND (fom between ? AND ?
+                  OR tom between ? AND ?);
         """
         ).use {
             it.setString(i++, fnr)
