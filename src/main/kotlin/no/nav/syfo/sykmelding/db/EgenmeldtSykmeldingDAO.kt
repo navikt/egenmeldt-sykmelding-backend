@@ -11,6 +11,7 @@ import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import org.postgresql.util.PGobject
+import java.time.LocalDate
 
 fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
     connection.use { connection ->
@@ -46,26 +47,71 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
     }
 }
 
-fun DatabaseInterface.sykmeldingOverlapper(egenmeldtSykmelding: EgenmeldtSykmelding): Boolean {
+/**
+ * Måler avstand fra parameter fom og tom, mot eksisterende fom og tom i databasen
+ * Hvis avstand er mindre enn grenseverdien antallDager vil metoden returnere true
+ *
+ * Denne kan brukes til å vurdere om en ny egenmeldt sykmelding er tilstrekkelig lang unna
+ * eksisterende sykmeldinger, per i dag 16 dager.
+ */
+fun DatabaseInterface.sykmeldingOverlapperGrenseverdi(fnr: String, fom: LocalDate, tom: LocalDate, antallDager: Int = 16): Boolean {
     connection.use { connection ->
-        val query = """
-            SELECT count(*)
-            FROM egenmeldt_sykmelding
-            WHERE pasientfnr = ?
-              AND arbeidsforhold->>'orgNummer' = ?
+        var i = 1;
+        connection.prepareStatement(
+                """
+                    SELECT abs(? - fom) as distance_fom_fom,
+                           abs(? - fom) as distance_tom_fom, 
+                           abs(? - tom) as distance_fom_tom, 
+                           abs(? - tom) as distance_tom_tom
+                    FROM egenmeldt_sykmelding
+                    WHERE pasientfnr = ?;
         """
-
-        connection.prepareStatement(query).use {
-            var i = 1
-            it.setString(i++, egenmeldtSykmelding.fnr)
-            it.setString(i++, egenmeldtSykmelding.arbeidsforhold?.orgNummer)
+        ).use {
+            it.setDate(i++, Date.valueOf(fom))
+            it.setDate(i++, Date.valueOf(tom))
+            it.setDate(i++, Date.valueOf(fom))
+            it.setDate(i++, Date.valueOf(tom))
+            it.setString(i++, fnr)
             val executeQuery = it.executeQuery()
-            if (executeQuery.next()) {
-                return executeQuery.getInt(1) > 0
+            while(executeQuery.next()) {
+                val distanceFomFom = executeQuery.getInt("distance_fom_fom")
+                val distanceTomFom = executeQuery.getInt("distance_tom_fom")
+                val distanceFomTom = executeQuery.getInt("distance_fom_tom")
+                val distanceTomTom = executeQuery.getInt("distance_tom_tom")
+
+                if(distanceFomFom < antallDager || distanceTomFom < antallDager || distanceFomTom < antallDager || distanceTomTom < antallDager) {
+                    return true
+                }
             }
+            return false
         }
     }
-    return false
+}
+
+fun DatabaseInterface.antallSykmeldingerInnenforPeriode(fnr: String, fom: LocalDate, tom: LocalDate): Int {
+    connection.use { connection ->
+        var i = 1;
+        connection.prepareStatement(
+                """
+                SELECT count(*) as count
+                FROM egenmeldt_sykmelding
+                WHERE pasientfnr = ?
+                AND (fom between ? AND ?
+                  OR tom between ? AND ?);
+        """
+        ).use {
+            it.setString(i++, fnr)
+            it.setDate(i++, Date.valueOf(fom))
+            it.setDate(i++, Date.valueOf(tom))
+            it.setDate(i++, Date.valueOf(fom))
+            it.setDate(i++, Date.valueOf(tom))
+            val executeQuery = it.executeQuery()
+            if (executeQuery.next()) {
+                return executeQuery.getInt("count")
+            }
+            return 0
+        }
+    }
 }
 
 fun DatabaseInterface.sykmeldingErAlleredeRegistrertForBruker(fnr: String): Boolean =
@@ -114,7 +160,7 @@ fun DatabaseInterface.slettEgenmeldtSykmelding(id: UUID) {
     }
 }
 
-fun DatabaseInterface.finnEgenmeldtSykmelding(pasientfnr: String): EgenmeldtSykmelding {
+fun DatabaseInterface.finnEgenmeldtSykmelding(pasientfnr: String): List<EgenmeldtSykmelding> {
     connection.use { connection ->
 
         val query =
@@ -124,7 +170,7 @@ fun DatabaseInterface.finnEgenmeldtSykmelding(pasientfnr: String): EgenmeldtSykm
 
         connection.prepareStatement(query).use {
             it.setObject(1, pasientfnr)
-            return it.executeQuery().toList { tilEgenmeldtSykmelding() }.first()
+            return it.executeQuery().toList { tilEgenmeldtSykmelding() }
         }
     }
 }

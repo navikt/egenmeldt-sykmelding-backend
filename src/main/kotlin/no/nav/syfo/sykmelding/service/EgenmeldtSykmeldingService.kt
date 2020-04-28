@@ -8,13 +8,14 @@ import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_COUNTER
 import no.nav.syfo.pdl.service.PdlPersonService
 import no.nav.syfo.syfosmregister.client.SyfosmregisterSykmeldingClient
+import no.nav.syfo.sykmelding.db.antallSykmeldingerInnenforPeriode
 import no.nav.syfo.sykmelding.db.registrerEgenmeldtSykmelding
-import no.nav.syfo.sykmelding.db.sykmeldingErAlleredeRegistrertForBruker
+import no.nav.syfo.sykmelding.db.sykmeldingOverlapperGrenseverdi
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForLangPeriodeException
+import no.nav.syfo.sykmelding.errorhandling.exceptions.ForMangeEgenmeldingerException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.ForTidligsteFomException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.IkkeTilgangException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.OverlappMedEksisterendeSykmeldingException
-import no.nav.syfo.sykmelding.errorhandling.exceptions.SykmeldingAlreadyExistsException
 import no.nav.syfo.sykmelding.errorhandling.exceptions.TomBeforeFomDateException
 import no.nav.syfo.sykmelding.kafka.SykmeldingSyfoserviceKafkaProducer
 import no.nav.syfo.sykmelding.mapping.opprettFellesformat
@@ -97,9 +98,15 @@ class EgenmeldtSykmeldingService @KtorExperimentalAPI constructor(
             log.warn("Egenmeldt sykmelding kan ikke være mer enn {} dager", maxAntallDagerSykmeldt)
             throw ForLangPeriodeException("Egenmeldt sykmelding kan ikke være lenger enn $maxAntallDagerSykmeldt dager")
         }
-        if (database.sykmeldingErAlleredeRegistrertForBruker(fnr = fnr)) {
-            log.warn("Det finnes en egenmeldt sykmelding fra før for samme bruker, {}", callId)
-            throw SykmeldingAlreadyExistsException("Du kan kun benytte egenmelding én gang")
+        if (database.antallSykmeldingerInnenforPeriode(fnr,
+                        fom = LocalDate.now().minusMonths(4),
+                        tom = LocalDate.now()) >= 2) {
+            log.warn("Brukeren kan bruke maks 2 egenmeldinger i løpet av 4 måneder")
+            throw ForMangeEgenmeldingerException("Du kan bruke maks 2 egenmeldinger i løpet av 4 måneder")
+        }
+        if (database.sykmeldingOverlapperGrenseverdi(fnr, fom = fom, tom = tom, antallDager = 16)) {
+            log.warn("Det må være minimum 16 dagers opphold mellom egenmeldinger")
+            throw ForMangeEgenmeldingerException("Det må være minst 16 dager mellom egenmeldinger")
         }
         if (harOverlappendeSykmeldingerIRegisteret(token = userToken, fom = fom, tom = tom)) {
             log.warn("Bruker har allerede sykmeldinger som overlapper med valgt periode {}", callId)
