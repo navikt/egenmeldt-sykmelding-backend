@@ -11,6 +11,11 @@ class OppdaterTopicsService(
 ) {
     fun oppdaterOKTopic(receivedSykmelding: ReceivedSykmelding) {
         log.info("Skriver sykmelding med id {} til ok-topic", receivedSykmelding.sykmelding.id)
-        kafkaProducerReceivedSykmelding.send(ProducerRecord(sm2013AutomaticHandlingTopic, receivedSykmelding.sykmelding.id, receivedSykmelding))
+        try {
+            kafkaProducerReceivedSykmelding.send(ProducerRecord(sm2013AutomaticHandlingTopic, receivedSykmelding.sykmelding.id, receivedSykmelding)).get()
+        } catch (e: Exception) {
+            log.error("Noe gikk galt ved skriving til OK-topic: {}", e.cause)
+            throw e
+        }
     }
 }

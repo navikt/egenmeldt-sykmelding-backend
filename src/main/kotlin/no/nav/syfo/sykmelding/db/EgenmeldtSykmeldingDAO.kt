@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import java.sql.Date
 import java.sql.ResultSet
+import java.time.LocalDate
 import java.util.UUID
 import no.nav.syfo.db.DatabaseInterface
 import no.nav.syfo.db.toList
@@ -11,7 +12,6 @@ import no.nav.syfo.log
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmelding
 import no.nav.syfo.sykmelding.model.Periode
 import org.postgresql.util.PGobject
-import java.time.LocalDate
 
 fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: EgenmeldtSykmelding) {
     connection.use { connection ->
@@ -56,7 +56,7 @@ fun DatabaseInterface.registrerEgenmeldtSykmelding(egenmeldtSykmelding: Egenmeld
  */
 fun DatabaseInterface.sykmeldingOverlapperGrenseverdi(fnr: String, fom: LocalDate, tom: LocalDate, antallDager: Int = 16): Boolean {
     connection.use { connection ->
-        var i = 1;
+        var i = 1
         connection.prepareStatement(
                 """
                     SELECT abs(? - fom) as distance_fom_fom,
@@ -73,13 +73,13 @@ fun DatabaseInterface.sykmeldingOverlapperGrenseverdi(fnr: String, fom: LocalDat
             it.setDate(i++, Date.valueOf(tom))
             it.setString(i++, fnr)
             val executeQuery = it.executeQuery()
-            while(executeQuery.next()) {
+            while (executeQuery.next()) {
                 val distanceFomFom = executeQuery.getInt("distance_fom_fom")
                 val distanceTomFom = executeQuery.getInt("distance_tom_fom")
                 val distanceFomTom = executeQuery.getInt("distance_fom_tom")
                 val distanceTomTom = executeQuery.getInt("distance_tom_tom")
 
-                if(distanceFomFom < antallDager || distanceTomFom < antallDager || distanceFomTom < antallDager || distanceTomTom < antallDager) {
+                if (distanceFomFom < antallDager || distanceTomFom < antallDager || distanceFomTom < antallDager || distanceTomTom < antallDager) {
                     return true
                 }
             }
@@ -90,7 +90,7 @@ fun DatabaseInterface.sykmeldingOverlapperGrenseverdi(fnr: String, fom: LocalDat
 
 fun DatabaseInterface.antallSykmeldingerInnenforPeriode(fnr: String, fom: LocalDate, tom: LocalDate): Int {
     connection.use { connection ->
-        var i = 1;
+        var i = 1
         connection.prepareStatement(
                 """
                 SELECT count(*) as count

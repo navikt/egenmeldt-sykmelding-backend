@@ -70,7 +70,7 @@ class EgenmeldtSykmeldingDAOTest : Spek({
 
         it("Should overlap on insert within 16 days - multiple records") {
             testDB.registrerEgenmeldtSykmelding(egenmeldtSykmelding)
-            val plus16 = egenmeldtSykmelding.copy(id = UUID.randomUUID(), periode = Periode(egenmeldtSykmelding.periode.tom, egenmeldtSykmelding.periode.tom.plusDays(16)));
+            val plus16 = egenmeldtSykmelding.copy(id = UUID.randomUUID(), periode = Periode(egenmeldtSykmelding.periode.tom, egenmeldtSykmelding.periode.tom.plusDays(16)))
             testDB.registrerEgenmeldtSykmelding(plus16)
 
             testDB.sykmeldingOverlapperGrenseverdi(egenmeldtSykmelding.fnr, egenmeldtSykmelding.periode.fom.plusDays(16), egenmeldtSykmelding.periode.tom.plusDays(16)) shouldBe true
