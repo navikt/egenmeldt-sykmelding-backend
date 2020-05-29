@@ -54,6 +54,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
         every { syfoserviceKafkaProducer.publishSykmeldingToKafka(any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
         coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
+        ikkeTilgjengeligFra = LocalDate.now().plusDays(20)
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
@@ -159,6 +160,85 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                             issuer = "issuer")}")
                 }) {
                     response.status() shouldEqual HttpStatusCode.Unauthorized
+                }
+            }
+        }
+    }
+
+    describe("EgenmeldtSykmeldingApi skal ikke være tilgjengelig etter gitt dato") {
+        with(TestApplicationEngine()) {
+            start()
+            setUpTestApplication()
+            setUpAuth()
+            val applicationState = ApplicationState(alive = true, ready = true)
+
+            application.routing {
+                registerNaisApi(applicationState)
+                authenticate {
+                    registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService)
+                }
+            }
+            it("API skal være tilgjengelig") {
+                ikkeTilgjengeligFra = LocalDate.now().plusDays(1)
+
+                with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
+                    val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
+                        periode = Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().plusDays(4)),
+                        arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                        egenSykdom = false
+                    )
+                    setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
+                    addHeader("Content-Type", "application/json")
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678910",
+                        issuer = "issuer")}")
+                }) {
+                    response.status() shouldEqual HttpStatusCode.Created
+                }
+            }
+            it("API skal ikke være tilgjengelig samme dag") {
+                ikkeTilgjengeligFra = LocalDate.now()
+
+                with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
+                    val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
+                        periode = Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().plusDays(4)),
+                        arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                        egenSykdom = false
+                    )
+                    setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
+                    addHeader("Content-Type", "application/json")
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678910",
+                        issuer = "issuer")}")
+                }) {
+                    response.status() shouldEqual HttpStatusCode.ServiceUnavailable
+                }
+            }
+            it("API skal ikke være tilgjengelig") {
+                ikkeTilgjengeligFra = LocalDate.now().minusDays(1)
+
+                with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
+                    val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
+                        periode = Periode(
+                            fom = LocalDate.now(),
+                            tom = LocalDate.now().plusDays(4)),
+                        arbeidsforhold = listOf(Arbeidsforhold("arbeidsgiver", "123456789", 50.5)),
+                        egenSykdom = false
+                    )
+                    setBody(getObjectMapper().writeValueAsString(egenmeldtSykmelding))
+                    addHeader("Content-Type", "application/json")
+                    addHeader("Authorization", "Bearer ${generateJWT("client",
+                        "loginservice",
+                        subject = "12345678910",
+                        issuer = "issuer")}")
+                }) {
+                    response.status() shouldEqual HttpStatusCode.ServiceUnavailable
                 }
             }
         }

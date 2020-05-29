@@ -13,6 +13,7 @@ import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDate
 import java.util.UUID
+import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER
 import no.nav.syfo.sykmelding.model.EgenmeldtSykmeldingRequest
 import no.nav.syfo.sykmelding.service.EgenmeldtSykmeldingService
@@ -27,11 +28,25 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val fnr = principal.payload.subject
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
-            val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
-            egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgPeriode(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
-            call.respond(HttpStatusCode.Created)
+            if (erTilgjengelig(now = LocalDate.now())) {
+                val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
+                egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgPeriode(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
+                call.respond(HttpStatusCode.Created)
+            } else {
+                log.warn("Egenmeldingen er ikke lenger tilgjengelig")
+                call.respond(HttpStatusCode.ServiceUnavailable, "Egenmeldingen er ikke lenger tilgjengelig")
+            }
         }
     }
+}
+
+var ikkeTilgjengeligFra: LocalDate = LocalDate.of(2020, 6, 1)
+
+fun erTilgjengelig(now: LocalDate): Boolean {
+    if (now.isBefore(ikkeTilgjengeligFra)) {
+        return true
+    }
+    return false
 }
 
 // Kun tilgjengelig hvis man ikke har arbeidsforhold p.t., og nøyaktig 16 dager fra dagens dato
