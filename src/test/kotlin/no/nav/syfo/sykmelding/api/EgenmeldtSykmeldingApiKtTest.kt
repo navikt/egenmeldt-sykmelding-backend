@@ -16,8 +16,6 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkClass
 import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import no.nav.syfo.application.ApplicationState
 import no.nav.syfo.application.api.registerNaisApi
 import no.nav.syfo.db.DatabaseInterface
@@ -56,7 +54,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
         every { syfoserviceKafkaProducer.publishSykmeldingToKafka(any(), any()) } just Runs
         coEvery { pdlService.getPersonOgDiskresjonskode(any(), any(), any()) } returns person
         coEvery { syfosmregisterClient.getSykmeldinger(any(), any(), any()) } returns emptyList()
-        ikkeTilgjengeligFra = OffsetDateTime.now(ZoneOffset.UTC).plusDays(20)
+        ikkeTilgjengeligFra = LocalDate.now().plusDays(20)
     }
 
     describe("Test EgenmeldtSykmeldingApi") {
@@ -181,7 +179,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 }
             }
             it("API skal være tilgjengelig") {
-                ikkeTilgjengeligFra = OffsetDateTime.of(LocalDate.now().plusDays(1).atTime(0,0,0), ZoneOffset.UTC)
+                ikkeTilgjengeligFra = LocalDate.now().plusDays(1)
 
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
@@ -202,7 +200,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 }
             }
             it("API skal ikke være tilgjengelig samme dag") {
-                ikkeTilgjengeligFra = OffsetDateTime.of(LocalDate.now().atTime(0,0,0), ZoneOffset.UTC)
+                ikkeTilgjengeligFra = LocalDate.now()
 
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(
@@ -223,7 +221,7 @@ class EgenmeldtSykmeldingApiKtTest : Spek({
                 }
             }
             it("API skal ikke være tilgjengelig") {
-                ikkeTilgjengeligFra = OffsetDateTime.of(LocalDate.now().minusDays(1).atTime(0,0,0), ZoneOffset.UTC)
+                ikkeTilgjengeligFra = LocalDate.now().minusDays(1)
 
                 with(handleRequest(HttpMethod.Post, "api/v1/sykmelding/egenmeldt") {
                     val egenmeldtSykmelding = EgenmeldtSykmeldingRequest(

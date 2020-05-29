@@ -12,8 +12,6 @@ import io.ktor.routing.post
 import io.ktor.routing.route
 import io.ktor.util.KtorExperimentalAPI
 import java.time.LocalDate
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.UUID
 import no.nav.syfo.log
 import no.nav.syfo.metrics.EGENMELDT_SYKMELDING_HTTP_REQ_COUNTER
@@ -30,7 +28,7 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
             val fnr = principal.payload.subject
             val token = call.request.headers[HttpHeaders.Authorization]!!
             val callId = UUID.randomUUID().toString()
-            if (erTilgjengelig(now = OffsetDateTime.now(ZoneOffset.UTC))) {
+            if (erTilgjengelig(now = LocalDate.now())) {
                 val egenmeldtSykmeldingRequest = call.receive<EgenmeldtSykmeldingRequest>()
                 egenmeldtSykmeldingService.validerOgRegistrerEgenmeldtSykmelding(sykmeldingRequest = overstyrArbeidsforholdOgPeriode(egenmeldtSykmeldingRequest), fnr = fnr, userToken = token, callId = callId)
                 call.respond(HttpStatusCode.Created)
@@ -42,9 +40,9 @@ fun Route.registrerEgenmeldtSykmeldingApi(egenmeldtSykmeldingService: EgenmeldtS
     }
 }
 
-var ikkeTilgjengeligFra: OffsetDateTime = OffsetDateTime.of(2020, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC)
+var ikkeTilgjengeligFra: LocalDate = LocalDate.of(2020, 6, 1)
 
-fun erTilgjengelig(now: OffsetDateTime): Boolean {
+fun erTilgjengelig(now: LocalDate): Boolean {
     if (now.isBefore(ikkeTilgjengeligFra)) {
         return true
     }
